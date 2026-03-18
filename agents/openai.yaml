@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mina Ralph Loop Bootstrap"
+  short_description: "Bootstrap or extend a Next.js Ralph loop repo"
+  default_prompt: "Use $mina-ralph-loop-bootstrap-nextjs to bootstrap or extend a Next.js repository with Ralph-loop docs, scaffold, and executable plan waves."
