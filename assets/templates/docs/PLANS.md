@@ -30,6 +30,8 @@ Read:
 - update docs when behavior changes
 - use the plan as the source of sequencing
 - if the plan is wrong, fix the plan first
+- search the codebase before assuming a helper or feature is missing
+- prefer targeted checks for the unit or slice you just changed
 
 ### After coding
 - move completed plans to the completed directory
@@ -41,6 +43,7 @@ Read:
 - Failing tests block promotion even if the feature appears complete by inspection.
 - Evaluator judgment exists to catch false positives after checks pass, not to excuse red checks.
 - If the tests do not prove the intended behavior, tighten the task contract and checks before promoting.
+- Fast local checks are for iteration speed; the required commands remain the promotion contract.
 
 ## When The Current Queue Is Done
 - Do not treat an empty active queue as the end of the product.

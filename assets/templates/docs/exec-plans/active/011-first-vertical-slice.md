@@ -47,6 +47,7 @@ Implement the first user-visible vertical slice for {{PROJECT_NAME}}.
 ## Required checks
 
 - `npm run verify`
+- targeted unit or slice-level checks for the behavior being implemented, while iterating
 
 ## Evaluator notes
 
@@ -56,3 +57,4 @@ Do not promote if `npm run verify` fails, even if the slice appears functionally
 ## Progress log
 
 - Start here. Append timestamped progress notes as work lands.
+- Note when existing partial implementations were found and reused instead of replaced.

@@ -32,6 +32,13 @@ This skill follows the harness-engineering model:
 - promotion depends on deterministic checks plus a separate evaluator step
 - failing required test commands block promotion
 
+It also adopts a few practical Ralph-style operating rules:
+
+- search the codebase before assuming something is not implemented
+- keep tasks narrow and promotion-oriented
+- prefer targeted checks while iterating, then use `verify` as the promotion gate
+- document why important tests exist so future loops do not weaken them accidentally
+
 ## Repository Layout
 
 - `SKILL.md`: operating contract for Codex
@@ -86,6 +93,12 @@ Example prompt in a later Codex session:
 
 ```text
 Use $mina-ralph-loop-bootstrap-nextjs to plan the next feature wave for this repo. Read the completed plans, update the docs first, and create the next active exec-plans with explicit promotion-blocking tests.
+```
+
+Useful follow-on prompt when implementation drift is suspected:
+
+```text
+Use $mina-ralph-loop-bootstrap-nextjs to inspect this repo, search before assuming missing implementations, update the docs first, and create the next smallest promotion-ready task wave.
 ```
 
 ## Enable The Skill In A New Codex Project

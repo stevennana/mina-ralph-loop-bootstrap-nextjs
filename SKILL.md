@@ -57,6 +57,9 @@ For continuation runs:
 - identify what feature area or product expansion the founder wants next
 - preserve completed plans as history rather than rewriting them
 
+Before making implementation claims or writing replacement code, search the codebase first.
+Do not assume a feature, helper, route, or test is missing just because the first search result was incomplete.
+
 ### 2. Interview until the docs are decision-complete
 
 Ask the user questions in stages, not all at once.
@@ -143,6 +146,13 @@ The generated scaffold must match the docs and expose these commands:
 Do not install the Ralph loop before these commands and their underlying file layout make sense.
 Do not describe a promotion-ready repo unless the test commands are wired into the actual promotion contract.
 
+During implementation, prefer the smallest targeted check that proves the changed unit or slice still works.
+For example:
+
+- run unit tests for the changed domain logic while iterating
+- run focused E2E coverage only for the affected journey while stabilizing that slice
+- keep `npm run verify` as the promotion gate for task completion
+
 ### 5. Install and adapt the Ralph loop
 
 Install the copied Ralph assets into the repo:
@@ -228,6 +238,9 @@ Minimum expectation:
 
 If the environment allows package installation and test execution, run the project verification commands and at least a dry `scripts/ralph/status.sh` check.
 
+If subagents are available, use them primarily for exploration, search, or summarization.
+Keep validation comparatively constrained: avoid fanning out broad concurrent test/build runs that create noisy backpressure or conflicting interpretations of failure.
+
 ## Important Rules
 
 - Keep the repository knowledge base as the system of record.
@@ -237,6 +250,9 @@ If the environment allows package installation and test execution, run the proje
 - Treat the test strategy as part of product definition, not post-hoc cleanup.
 - Never allow a task to promote on narrative completeness when required tests are red.
 - When a queue ends, re-enter through docs and planning before adding more feature work.
+- Search before assuming a thing is not implemented.
+- When adding or changing tests, capture why the test exists and what regression it prevents.
+- Prefer parallel search and analysis over parallel validation.
 - Do not broaden the first version beyond the Next.js preset.
 - Do not leave the repo with aspirational docs that the scaffold contradicts.
 - If the generated scaffold diverges from the copied Ralph scripts, adapt the scripts immediately instead of documenting the mismatch.

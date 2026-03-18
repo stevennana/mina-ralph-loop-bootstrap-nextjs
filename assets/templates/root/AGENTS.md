@@ -36,6 +36,7 @@ Use layered checks:
 - small E2E coverage for the required user journeys only
 
 Promotion is blocked when required checks fail. Required test commands in active task contracts are hard gates, not suggestions.
+While iterating, prefer the smallest targeted check for the code you just changed. Use the full required command set before considering the task done.
 
 ### Required E2E flows
 {{REQUIRED_E2E_BULLETS}}
@@ -45,6 +46,12 @@ Promotion is blocked when required checks fail. Required test commands in active
 - Prefer small, executable plans over vague TODOs.
 - When a repeated mistake appears, first document it; if it keeps recurring, promote it into tests or lint rules.
 - Keep the documented test strategy current; do not leave promotion gates implied.
+- When adding or editing tests, explain what behavior the test protects if that intent would otherwise be easy to lose.
+
+## Search Discipline
+- Search the codebase before concluding that a thing is unimplemented.
+- Prefer multiple targeted searches over one broad assumption.
+- If you find a partial implementation, adapt or complete it instead of duplicating it blindly.
 
 ## Done Definition
 {{DONE_DEFINITION}}

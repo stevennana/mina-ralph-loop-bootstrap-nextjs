@@ -27,6 +27,8 @@ When enhancing this skill, preserve these invariants:
 - The references define stop conditions and baseline requirements; code and templates must agree with them.
 - Generated repos must expose deterministic commands: `lint`, `typecheck`, `build`, `test:unit`, `test:e2e`, and `verify`.
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
+- Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
+- Tests should explain the behavior they protect when that context would otherwise be lost across loops.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order

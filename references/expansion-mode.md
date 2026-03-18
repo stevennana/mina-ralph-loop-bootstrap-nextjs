@@ -37,6 +37,9 @@ Before asking new questions, inspect:
 8. `docs/exec-plans/active/index.md`
 9. files in `docs/exec-plans/completed/`
 
+Before proposing new work, search the current codebase for existing implementations and partial attempts.
+Do not create a fresh implementation plan for something that already exists under a different name or location.
+
 ## Delta Interview Checklist
 
 Do not repeat the entire bootstrap interview unless the repo intent has materially changed.
@@ -80,3 +83,4 @@ Before handoff, confirm:
 - required commands still match `package.json`
 - promotion rules still say that failing required tests block advancement
 - the new queue is understandable without external context
+- the proposed next wave is based on what the repo already contains, not on missing-code assumptions

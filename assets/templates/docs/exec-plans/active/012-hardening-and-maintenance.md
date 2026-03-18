@@ -54,6 +54,7 @@ Close the gap between the implemented slice and the repository's reliability, se
 ## Required checks
 
 - `npm run verify`
+- targeted checks for the reliability or hardening change being made, while iterating
 
 ## Evaluator notes
 
@@ -63,3 +64,4 @@ Do not promote if `npm run verify` fails, even if the hardening changes look cor
 ## Progress log
 
 - Start here. Append timestamped progress notes as work lands.
+- Note when existing partial implementations were found and reused instead of replaced.

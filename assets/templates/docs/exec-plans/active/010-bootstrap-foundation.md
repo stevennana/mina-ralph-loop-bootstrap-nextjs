@@ -57,6 +57,7 @@ Bootstrap the repository so it has a coherent docs tree, a minimal Next.js scaff
 ## Required checks
 
 - `npm run verify`
+- targeted unit or smoke checks for the files being introduced, while iterating
 
 ## Evaluator notes
 
@@ -66,3 +67,4 @@ Do not promote if `npm run verify` fails, even if the bootstrap looks complete b
 ## Progress log
 
 - Start here. Append timestamped progress notes as work lands.
+- Note when existing partial implementations were found and reused instead of replaced.

@@ -31,6 +31,7 @@ Recommended shapes:
 - `verify`: lint + typecheck + build + test
 
 For this skill, `verify` is not advisory. Generated task contracts should treat the required test-bearing commands as hard promotion gates.
+During day-to-day implementation loops, prefer narrower checks first and reserve `verify` for completion gating.
 
 ## Minimum scaffold
 
@@ -57,3 +58,4 @@ Keep these defaults aligned unless there is a strong reason not to:
 - If the app needs a different local server command or port for Playwright, update the evaluator preflight and operator docs together.
 - Do not leave the repo in a state where the docs prescribe one command contract and `package.json` exposes another.
 - Do not leave the repo in a state where the evaluator can promote tasks despite failing required test commands.
+- Encourage focused unit and slice-level checks during implementation so the loop can turn quickly without weakening the final promotion gate.
