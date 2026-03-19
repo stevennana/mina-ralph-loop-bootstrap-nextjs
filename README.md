@@ -338,6 +338,50 @@ If the answers JSON includes structured `FEATURE_SPECS` and `EXEC_TASKS`, `scrip
 If `FEATURE_SPECS` is present without `EXEC_TASKS`, the renderer derives one task per feature spec plus a separate hardening task.
 If `EXEC_TASKS` is present but a task spans multiple product specs, the renderer now fails instead of accepting an oversized queue.
 
+## Operating A Generated Repo
+
+After the skill finishes bootstrapping a target repo, the normal operator entrypoints are the generated Ralph scripts inside that target repo.
+
+Run one full cycle:
+
+```bash
+./scripts/ralph/run-once.sh
+./scripts/ralph/status.sh
+```
+
+Run a longer unattended loop:
+
+```bash
+./scripts/ralph/run-loop.sh
+```
+
+Or with a custom sleep interval between cycles:
+
+```bash
+RALPH_LOOP_SLEEP_SECONDS=45 ./scripts/ralph/run-loop.sh
+```
+
+Monitor current state and logs:
+
+```bash
+./scripts/ralph/status.sh
+tail -f state/run-log.md
+cat state/current-cycle.json
+cat state/evaluation.json
+cat state/backlog.md
+cat state/last-result.txt
+```
+
+Important state files in generated repos:
+
+- `state/current-task.txt`: current active task id
+- `state/current-cycle.json`: live phase/status for the current run
+- `state/evaluation.json`: latest deterministic-check and evaluator result
+- `state/run-log.md`: compact operator log across cycles
+- `state/backlog.md`: rendered queue snapshot
+- `state/task-history.md`: completed-task history
+- `state/artifacts/`: per-cycle worker, evaluator, commit, and prompt artifacts
+
 ## Enhancing This Skill
 
 If you are improving the skill itself, start with `AGENT.md`, then read:
