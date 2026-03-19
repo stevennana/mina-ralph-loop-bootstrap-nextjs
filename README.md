@@ -56,6 +56,7 @@ It also adopts a few practical Ralph-style operating rules:
 - `references/doc-quality-loop.md`: quality gate for refining docs and exec-plan pages until they are decision-complete
 - `references/environment-blockers.md`: exceptional path for repeated environment-specific verification blockers
 - `references/runtime-startup.md`: contract for proving production-style startup in stateful apps
+- `references/server-logging.md`: contract for operator-visible Next.js server logging, `start:logged`, and log-level configuration
 - `assets/templates/docs/references/README.md`: rule for turning user-provided references into durable repo-local reference notes
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
@@ -108,6 +109,7 @@ The bootstrap session should only guarantee the harness environment:
 - Ralph installed and aligned
 - deterministic commands working
 - production-style startup proven when the app depends on runtime state
+- operator-visible `npm run start:logged` logging available for manual server inspection
 - bootstrap foundation task archived into `docs/exec-plans/completed/`
 - remaining feature tasks left in `docs/exec-plans/active/` for the Ralph loop
 
@@ -361,6 +363,13 @@ Or with a custom sleep interval between cycles:
 RALPH_LOOP_SLEEP_SECONDS=45 ./scripts/ralph/run-loop.sh
 ```
 
+Run the generated Next.js server with a persistent operator log:
+
+```bash
+npm run start:logged
+LOG_LEVEL=debug npm run start:logged
+```
+
 Monitor current state and logs:
 
 ```bash
@@ -370,6 +379,8 @@ cat state/current-cycle.json
 cat state/evaluation.json
 cat state/backlog.md
 cat state/last-result.txt
+ls logs/
+tail -f logs/next-server-*.log
 ```
 
 Important state files in generated repos:
@@ -381,6 +392,12 @@ Important state files in generated repos:
 - `state/backlog.md`: rendered queue snapshot
 - `state/task-history.md`: completed-task history
 - `state/artifacts/`: per-cycle worker, evaluator, commit, and prompt artifacts
+
+Generated repos should treat server logging as part of the normal operator contract:
+
+- `npm run start:logged` should create a timestamped log file under `logs/`
+- `LOG_LEVEL` should control server verbosity for manual debugging
+- server-side code should support at least `trace`, `debug`, `info`, `warn`, and `error`
 
 ## Enhancing This Skill
 

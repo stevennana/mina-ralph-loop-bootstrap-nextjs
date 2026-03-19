@@ -62,6 +62,8 @@ local work that is bound to that port.
 - `state/current-cycle.json` shows whether the current run is still active and which phase it is in
 - full raw output for each cycle is written under `state/artifacts/`
 - Playwright-backed verification also writes Next.js server output to a per-cycle `*-next-server.log` artifact
+- manual operator runs should use `npm run start:logged`, which writes a timestamped Next.js server log under `logs/`
+- generated repos should document a server log level environment variable such as `LOG_LEVEL`, with at least `trace`, `debug`, `info`, `warn`, and `error`
 - server wrappers default `MINAKEEP_DEBUG_SERVER=1`, so AI-tagging failures include debug details in the Next server logs without logging note bodies or tokens
 - inspect artifact files when the compact log points to a failed phase
 
@@ -88,6 +90,8 @@ Default sleep is `30` seconds when `RALPH_LOOP_SLEEP_SECONDS` is not set.
 tail -f state/run-log.md
 cat state/last-result.txt
 cat state/evaluation.json
+ls logs/
+tail -f logs/next-server-*.log
 ```
 
 ## Operator guidance

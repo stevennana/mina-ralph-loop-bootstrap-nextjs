@@ -18,6 +18,7 @@ For repos with persistent runtime state, add:
 
 - `db:prepare` or an equivalent explicit runtime-prep command
 - `start:smoke` or an equivalent startup-smoke command
+- `start:logged` or an equivalent operator-visible startup command when humans need to inspect real server behavior directly
 
 ## What `start:smoke` Should Prove
 

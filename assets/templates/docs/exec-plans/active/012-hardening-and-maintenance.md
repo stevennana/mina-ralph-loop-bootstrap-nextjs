@@ -39,6 +39,7 @@ Close the gap between the implemented slice and the repository's reliability, se
 - reconcile docs and implementation drift
 - keep the deterministic checks healthy
 - tighten operator guidance for the Ralph loop
+- keep operator-visible server logging aligned with the actual startup path
 - record remaining debt explicitly
 
 ## Out of scope
@@ -52,8 +53,9 @@ Close the gap between the implemented slice and the repository's reliability, se
 2. `npm run start:smoke` passes when the repo depends on persistent runtime state.
 3. Loop documentation matches the actual scripts.
 4. Reliability/security docs reflect the current implementation.
-5. Remaining debt is explicit.
-6. If the only remaining blocker is environment-specific, that blocker is explicitly documented and escalated instead of causing repeated blind retries.
+5. Operator-visible startup logging and log-level guidance match the actual server behavior.
+6. Remaining debt is explicit.
+7. If the only remaining blocker is environment-specific, that blocker is explicitly documented and escalated instead of causing repeated blind retries.
 
 ## Required checks
 

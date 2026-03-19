@@ -41,6 +41,7 @@ Bootstrap the repository so it has a coherent docs tree, a minimal Next.js scaff
 - create the minimal scaffold
 - install the Ralph loop
 - expose deterministic commands
+- expose an operator-visible `npm run start:logged` path and documented server log levels
 
 ## Out of scope
 
@@ -55,6 +56,7 @@ Bootstrap the repository so it has a coherent docs tree, a minimal Next.js scaff
 3. The Ralph scripts exist.
 4. `npm run verify` passes.
 5. `npm run start:smoke` passes.
+6. The repo documents `npm run start:logged`, the `logs/` directory, and the supported server log levels for manual verification.
 
 ## Required checks
 

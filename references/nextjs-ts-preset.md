@@ -24,6 +24,7 @@ The generated `package.json` should expose:
 - `test:e2e`
 - `test`
 - `verify`
+- `start:logged`
 
 If the app has persistent runtime state such as SQLite/Prisma, migrations, or local storage preparation, it should also expose:
 
@@ -40,6 +41,12 @@ Recommended startup shape for stateful apps:
 - `db:prepare`: prepare schema/runtime state for local and production-style startup
 - `start:smoke`: prepare runtime state if needed, start the app in production-style mode, probe a minimal route, then stop
 
+Recommended operator logging shape:
+
+- `start:logged`: run the production-style Next.js server and tee stdout/stderr into a timestamped file under `logs/`
+- `LOG_LEVEL`: selects the server log verbosity for manual verification
+- generated server code should support at least `trace`, `debug`, `info`, `warn`, and `error`
+
 For this skill, `verify` is not advisory. Generated task contracts should treat the required test-bearing commands as hard promotion gates.
 During day-to-day implementation loops, prefer narrower checks first and reserve `verify` for completion gating.
 If a feature depends on an outside resource such as AI chat or another remote integration, the relevant E2E scenario should be part of the promotion contract.
@@ -53,6 +60,7 @@ If a feature depends on an outside resource such as AI chat or another remote in
 - deterministic commands wired before the Ralph loop is considered ready
 - promotion logic aligned so failing required test commands block advancement
 - if the app uses persistent runtime state, a production-style startup smoke proves `npm run start` is viable
+- the repo exposes `npm run start:logged` so operators can inspect real server behavior without relying on test-only artifacts
 
 ## Ralph alignment
 
@@ -73,3 +81,4 @@ Keep these defaults aligned unless there is a strong reason not to:
 - Encourage focused unit and slice-level checks during implementation so the loop can turn quickly without weakening the final promotion gate.
 - Ensure external-resource features are represented in Playwright or equivalent E2E coverage before the related task is promotable.
 - If the app depends on DB or runtime preparation, do not leave `npm run start` unproven; wire an explicit startup smoke path into the repo contract.
+- Do not leave operators blind during manual verification; wire `start:logged`, `logs/`, and server log-level configuration into the generated repo contract.

@@ -12,6 +12,10 @@ Define the reliability expectations and failure-handling rules for {{PROJECT_NAM
 ## Runtime Startup Contract
 If the app depends on persistent runtime state, document how runtime preparation happens and how a production-style startup smoke proves the `start` path actually works.
 
+## Operator Logging
+Document how `npm run start:logged` writes operator-visible server logs into `logs/`, which environment variable controls the log level, and which levels are supported for manual debugging.
+Generated server code should expose at least `trace`, `debug`, `info`, `warn`, and `error` logging without dumping secrets or full sensitive payloads by default.
+
 ## Test Strategy
 Document which behaviors are protected by unit tests, which flows require end-to-end coverage, and which command failures block task promotion.
 When tests cover subtle or business-critical behavior, capture why those tests exist so future loops do not weaken them casually.

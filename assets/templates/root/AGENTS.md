@@ -38,6 +38,7 @@ Use layered checks:
 Promotion is blocked when required checks fail. Required test commands in active task contracts are hard gates, not suggestions.
 While iterating, prefer the smallest targeted check for the code you just changed. Use the full required command set before considering the task done.
 If a feature depends on an outside resource such as AI chat or another remote service, keep it in the required E2E flows before allowing promotion.
+For manual server inspection, prefer `npm run start:logged` and set `LOG_LEVEL` intentionally instead of relying only on ephemeral terminal output.
 
 ### Required E2E flows
 {{REQUIRED_E2E_BULLETS}}

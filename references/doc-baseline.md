@@ -22,7 +22,7 @@ Generate this baseline before treating the Ralph loop as installed.
 - `docs/QUALITY_SCORE.md`
   - domain/layer quality grades, verification posture, and immediate priorities
 - `docs/RELIABILITY.md`
-  - reliability expectations, failure modes, verification, operational caveats, test strategy
+  - reliability expectations, failure modes, verification, operational caveats, test strategy, operator logging
 - `docs/SECURITY.md`
   - security expectations, secrets, public/private surfaces, validation boundaries
 

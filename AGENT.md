@@ -54,6 +54,7 @@ When enhancing this skill, preserve these invariants:
 - The bootstrap session must stop after foundation completion and must not pre-execute queued feature tasks.
 - Completed tasks belong in `docs/exec-plans/completed/`, not `active/`.
 - Stateful generated repos should prove their production-style startup path explicitly, not just pass build/test checks.
+- Generated repos should expose an operator-visible `npm run start:logged` path, a `logs/` directory, and configurable server log levels for manual debugging.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order
@@ -66,10 +67,11 @@ Before changing behavior, read these files in order:
 4. `references/interview-checklist.md`
 5. `references/feature-slicing.md`
 6. `references/nextjs-ts-preset.md`
-7. `scripts/render_docs.py`
-8. `scripts/install_ralph.py`
-9. `scripts/companion_skills.py`
-10. the relevant files under `assets/templates/`
+7. `references/server-logging.md`
+8. `scripts/render_docs.py`
+9. `scripts/install_ralph.py`
+10. `scripts/companion_skills.py`
+11. the relevant files under `assets/templates/`
 
 ## Repository Map
 

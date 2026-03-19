@@ -30,6 +30,7 @@ Read these references before asking questions or writing files:
 - [references/doc-quality-loop.md](references/doc-quality-loop.md)
 - [references/environment-blockers.md](references/environment-blockers.md)
 - [references/runtime-startup.md](references/runtime-startup.md)
+- [references/server-logging.md](references/server-logging.md)
 
 Open templates and copied Ralph assets only when you need them:
 
@@ -278,6 +279,7 @@ For v1 of this skill, the scaffold is opinionated:
 - `node --import tsx --test` for unit tests
 
 If the generated app depends on persistent runtime state such as SQLite/Prisma or local runtime preparation, follow [references/runtime-startup.md](references/runtime-startup.md).
+For operator-visible Next.js server logs outside the test path, also follow [references/server-logging.md](references/server-logging.md).
 
 The generated scaffold must match the docs and expose these commands:
 
@@ -292,6 +294,16 @@ For stateful apps, also expose deterministic runtime-prep and startup-proof comm
 
 - `npm run db:prepare`
 - `npm run start:smoke`
+
+For operator-visible manual startup, generated repos should also expose:
+
+- `npm run start:logged`
+
+And document:
+
+- the `logs/` directory location
+- the supported server log levels such as `trace`, `debug`, `info`, `warn`, and `error`
+- the environment variable used to select the log level
 
 Do not install the Ralph loop before these commands and their underlying file layout make sense.
 Do not describe a promotion-ready repo unless the test commands are wired into the actual promotion contract.
@@ -460,6 +472,7 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
 - Repeated environment-specific blockers should branch into a dedicated RCA/fix exec-plan after three occurrences, then return to the original task.
 - Repos with persistent runtime state must prove a production-style startup path, not just build/test paths.
+- Generated repos should expose an operator-visible `start:logged` path and server log levels so humans can inspect real server flow without relying only on Ralph artifacts.
 - Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.
 - Do not let the generator stop at one generic `core-flow.md` and one oversized first-slice task when the product clearly has several feature fronts.
 - The bootstrap session may complete only the foundation task; remaining feature tasks must be left for the Ralph loop or a later explicit implementation session.
