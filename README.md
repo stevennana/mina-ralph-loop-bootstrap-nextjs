@@ -136,11 +136,24 @@ The intended follow-on workflow is:
 3. update product specs and design docs first
 4. create the next active exec-plans
 5. keep the same promotion rules and required test gates
+6. stop there and hand back the refreshed queue
+
+Important continuation boundary:
+
+- use this skill to refresh the harness-engineering docs and create the next exec-plan wave
+- do not start application-code implementation in the same continuation pass
+- after the queue exists, let Ralph or a later explicit implementation request pick up one active task
 
 Example prompt in a later Codex session:
 
 ```text
 Use $mina-ralph-loop-bootstrap-nextjs to plan the next feature wave for this repo. Read the completed plans, update the docs first, and create the next active exec-plans with explicit promotion-blocking tests.
+```
+
+If you want implementation after that planning pass, do it as a separate follow-up against a specific active task, for example:
+
+```text
+Implement docs/exec-plans/active/021-search-retrieval.md and do not broaden beyond that task contract.
 ```
 
 Useful follow-on prompt when implementation drift is suspected:

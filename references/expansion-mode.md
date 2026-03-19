@@ -13,6 +13,7 @@ The sequence stays:
 3. update docs first
 4. create the next active exec-plans
 5. validate the queue and command contract
+6. stop there and hand back the refreshed queue
 
 ## When To Use Expansion Mode
 
@@ -74,6 +75,18 @@ If any of those still requires guessing, keep asking.
 - Update `docs/exec-plans/active/index.md` so the next wave order is obvious.
 - Prefer a short sequence of small vertical slices over one large omnibus plan.
 - Include at least one user-visible slice in the new wave unless the founder explicitly wants infrastructure-only follow-up.
+- Refresh `docs/PLANS.md`, `docs/RELIABILITY.md`, and other harness-engineering docs if the new wave changes the operator contract.
+- Treat the expansion-run deliverable as docs and exec-plans only; do not start implementation in the same pass.
+
+## Stop Boundary
+
+After the docs and next active queue are refreshed:
+
+- stop and hand the repo back
+- do not modify application code, package scripts, routes, schemas, tests, or runtime wiring in the same continuation run
+- let Ralph or a later explicit implementation request pick up one active task afterward
+
+If the user says something broad like “implement the plan” before the queue refresh is complete, finish the planning/doc phase first and then ask for or wait for a separate implementation instruction against a specific active task.
 
 ## Validation
 

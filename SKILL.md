@@ -233,6 +233,7 @@ For continuation runs:
 - update quality, reliability, and security docs if the new wave changes their posture
 - keep `docs/references/` current when new user-provided references appear
 - leave completed plan history intact
+- stop after the docs and next active queue are refreshed; do not begin app-code implementation in the same continuation run
 
 ### 3b. Improve supporting docs before writing exec-plans
 
@@ -413,6 +414,16 @@ Use this expansion loop:
 5. validate that the new queue is coherent and that the required commands still match the repo
 
 Do not jump straight into implementation of new features without first refreshing the docs and task queue.
+For continuation runs, treat the deliverable as planning-only by default:
+
+1. inspect what is already true
+2. interview for the delta
+3. update the harness-engineering docs and Ralph-loop docs first
+4. create the next active exec-plans
+5. stop and hand back the refreshed queue
+
+Do not modify application code, routes, schemas, tests, or runtime wiring in the same continuation pass unless the user later gives a new explicit implementation request against a specific active exec-plan after the queue refresh is complete.
+If the user says something broad like “implement the plan” while the continuation interview or queue-refresh work is still in progress, treat that as ambiguous and finish the docs/exec-plan refresh first.
 
 ### 7. Validate before handoff
 

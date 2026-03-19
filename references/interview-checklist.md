@@ -5,6 +5,7 @@ If the repo is already bootstrapped and the user wants the next feature wave, co
 Preferred interaction style: before the first substantive product question, first handle companion-skill guidance and resolve the install decision, then review the product/reference context, then in a separate prompt recommend `Plan` mode if the user wants selectable option lists, then in a separate prompt tell the user to say `continue` when ready; after that, ask one question at a time, give suggested options when useful, and always allow a free-form answer.
 Before the first substantive product question, check whether the pinned companion skill set is installed and, if the user allows them, summarize all missing companion skills, ask whether to auto-install them before product analysis and documentation starts, use the helper installer flow by default, and then handle accepted installs one skill at a time.
 Keep the printed manual commands aligned with the actual upstream repo paths.
+For continuation runs, the stop condition is docs and queue refresh, not immediate implementation. Finish the interview only when you can update the harness docs and write the next exec-plans without guessing, then stop there.
 
 ## Identity
 
