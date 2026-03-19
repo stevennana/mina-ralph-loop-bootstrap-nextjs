@@ -63,6 +63,8 @@ Do not assume a feature, helper, route, or test is missing just because the firs
 ### 2. Interview until the docs are decision-complete
 
 Ask the user questions in stages, not all at once.
+At the start of founder discovery, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
+If the session remains in `Default` mode, continue with one-question-at-a-time plain-text questions, suggested options, and free-form fallback.
 Prefer one question at a time unless the user explicitly asks for batching.
 
 For each interview question:
@@ -72,7 +74,8 @@ For each interview question:
 - always allow the user to answer in free form instead of choosing an option
 - keep the question narrow enough that the user can answer without opening another editor unless they prefer to
 
-In this Codex CLI flow, treat those options as plain-text suggestions, not as guaranteed clickable UI controls.
+In `Plan` mode, prefer the built-in selectable option-list flow when available.
+In `Default` mode, treat those options as plain-text suggestions rather than clickable UI controls.
 Do not require the user to prepare answers in a separate editor unless they want to.
 
 For continuation runs, do a delta interview rather than repeating the full bootstrap interview.
