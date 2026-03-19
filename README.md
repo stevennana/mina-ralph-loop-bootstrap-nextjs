@@ -49,6 +49,7 @@ It also adopts a few practical Ralph-style operating rules:
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
 - `scripts/companion_skills.py`: checks, prints commands for, and installs the pinned companion skills
+- `scripts/finalize_bootstrap_state.py`: archives the completed foundation task and leaves feature tasks queued for Ralph
 - `scripts/template_utils.py`: shared rendering helpers
 - `references/expansion-mode.md`: rules for generating the next active queue after the initial tranche is complete
 - `assets/templates/root/`: root-file templates
@@ -71,8 +72,9 @@ The skill is meant to run in this order:
 8. review each exec-plan page one by one and loop on quality if needed
 9. scaffold the Next.js app to match the docs
 10. install and adapt the Ralph loop
-11. seed the initial active task queue
-12. validate commands and hand back operator guidance
+11. finalize the bootstrap task state without running feature tasks
+12. seed the initial active task queue
+13. validate commands and hand back operator guidance
 
 ## Limitations
 
@@ -84,6 +86,19 @@ Current v1 limitations:
 - copied Ralph assets are a starting point, not guaranteed drop-ins
 - generated docs may still need project-specific rewriting after first render
 - the skill repo does not yet include a full self-regression harness
+
+## Bootstrap Boundary
+
+The bootstrap session should only guarantee the harness environment:
+
+- docs rendered and tightened
+- minimal scaffold in place
+- Ralph installed and aligned
+- deterministic commands working
+- bootstrap foundation task archived into `docs/exec-plans/completed/`
+- remaining feature tasks left in `docs/exec-plans/active/` for the Ralph loop
+
+The skill should not pre-execute the queued feature tasks during the initial bootstrap run.
 
 ## Continue After The Initial Plans Are Done
 
@@ -288,6 +303,7 @@ When the skill is run manually or extended, these scripts are the entry points:
 ```bash
 python3 scripts/render_docs.py --answers /tmp/ralph-bootstrap-answers.json --repo-root /path/to/target-repo
 python3 scripts/install_ralph.py --repo-root /path/to/target-repo
+python3 scripts/finalize_bootstrap_state.py --repo-root /path/to/target-repo
 ```
 
 If the answers JSON includes structured `FEATURE_SPECS` and `EXEC_TASKS`, `scripts/render_docs.py` now materializes:

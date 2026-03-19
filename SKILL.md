@@ -40,6 +40,7 @@ Use these scripts when bootstrapping:
 - `scripts/render_docs.py`
 - `scripts/install_ralph.py`
 - `scripts/companion_skills.py`
+- `scripts/finalize_bootstrap_state.py`
 
 ## Workflow
 
@@ -290,6 +291,10 @@ For example:
 - run focused E2E coverage only for the affected journey while stabilizing that slice
 - keep `npm run verify` as the promotion gate for task completion
 
+During the initial bootstrap run, stop at the foundation boundary.
+Do not implement the queued feature tasks during the bootstrap session.
+The skill may complete only the foundation/bootstrap task needed to guarantee the harness environment.
+
 ### 5. Install and adapt the Ralph loop
 
 Install the copied Ralph assets into the repo:
@@ -309,6 +314,25 @@ Required adaptations:
 - keep the prompt-generation logic aligned with the task-doc layout
 
 Treat `assets/templates/ralph/` as the starting point, not as an immutable drop-in.
+
+### 5b. Finalize bootstrap state
+
+After the docs, scaffold, Ralph assets, and deterministic verification are in place:
+
+- mark the bootstrap/foundation task as completed
+- move that task contract into `docs/exec-plans/completed/`
+- leave feature tasks in `docs/exec-plans/active/`
+- activate the first remaining feature task for the future Ralph run
+- initialize `state/` so Ralph can start from the first real feature task
+
+Use:
+
+```bash
+python3 <skill>/scripts/finalize_bootstrap_state.py --repo-root <target-repo>
+```
+
+This step should happen during the bootstrap session.
+Do not run the Ralph loop itself from the bootstrap session just to advance feature tasks.
 
 ### 6. Seed the initial queue
 
@@ -375,6 +399,9 @@ Minimum expectation:
 - Ralph scripts exist under `scripts/ralph/`
 - `state/README.md` exists
 - the active queue is renderable
+- the completed directory contains the finished bootstrap/foundation task
+- the active directory contains only the remaining feature tasks, not already-completed ones
+- `state/current-task.txt` points at the first real feature task or `NONE` only when the queue is truly exhausted
 - one-cycle and loop-run guidance are written down
 - continuation guidance is clear when the current queue has ended
 
@@ -411,6 +438,8 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
 - Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.
 - Do not let the generator stop at one generic `core-flow.md` and one oversized first-slice task when the product clearly has several feature fronts.
+- The bootstrap session may complete only the foundation task; remaining feature tasks must be left for the Ralph loop or a later explicit implementation session.
+- Do not leave completed task contracts sitting in `docs/exec-plans/active/`.
 - Prefer parallel search and analysis over parallel validation.
 - Do not broaden the first version beyond the Next.js preset.
 - Do not leave the repo with aspirational docs that the scaffold contradicts.
