@@ -29,6 +29,7 @@ If the repo is already bootstrapped and the user wants the next feature wave, co
 - core flows
 - required read-only or admin surfaces
 - what absolutely must be test-covered end-to-end
+- which external-resource flows must be test-covered end-to-end before promotion
 
 ## Technical basis
 
@@ -36,6 +37,7 @@ If the repo is already bootstrapped and the user wants the next feature wave, co
 - external dependencies or APIs
 - secrets/config shape
 - single-user vs multi-user expectations
+- whether any user-visible feature depends on outside resources such as AI or third-party services
 
 ## Quality bar
 
@@ -43,6 +45,7 @@ If the repo is already bootstrapped and the user wants the next feature wave, co
 - unit-test expectations
 - integration-test expectations if any
 - required E2E flows
+- explicit E2E coverage for external-resource features before promotion
 - promotion-blocking test gates
 - what `npm run verify` is expected to prove
 - reliability or security caveats that must be documented

@@ -38,6 +38,7 @@ It also adopts a few practical Ralph-style operating rules:
 - keep tasks narrow and promotion-oriented
 - prefer targeted checks while iterating, then use `verify` as the promotion gate
 - document why important tests exist so future loops do not weaken them accidentally
+- if a feature depends on an outside resource such as AI chat, it should be covered by an E2E scenario before promotion
 
 ## Repository Layout
 
@@ -158,6 +159,47 @@ The skill will ask staged founder questions covering:
 - reliability and security constraints
 
 The stop condition is not just "enough detail to scaffold." The interview must make the test strategy explicit enough that the generated plans can say which checks are required and which failures block promotion.
+That includes calling out external-resource features that must be covered by E2E before promotion.
+
+## Recommended Companion Skills
+
+If the customer allows them and they are relevant to the work, consider installing and using these companion skills before planning or implementation.
+
+### Database skill
+
+```bash
+git clone https://github.com/prisma/skills.git
+cp -r skills/prisma-cli ~/.codex/skills/prisma-cli
+```
+
+### Next.js skill
+
+```bash
+git clone https://github.com/sickn33/antigravity-awesome-skills.git
+cp -r antigravity-awesome-skills/skills/nextjs-app-router-patterns ~/.codex/skills/
+```
+
+### UI design skills
+
+```bash
+git clone https://github.com/am-will/codex-skills.git
+cp -r codex-skills/skills/frontend-design ~/.codex/skills/
+cp -r codex-skills/skills/frontend-responsive-ui ~/.codex/skills/
+```
+
+### Architecture skill
+
+```bash
+git clone https://github.com/MKToronto/python-clean-architecture-codex.git
+cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture
+```
+
+When available and allowed:
+
+- use `prisma-cli` before planning database schema or migration work
+- use `nextjs-app-router-patterns` before shaping App Router structure
+- use `frontend-design` or `frontend-responsive-ui` before planning or implementing significant UI work
+- use `clean-architecture` before defining major boundaries or system structure
 
 ### 5. Let the skill materialize the repo
 

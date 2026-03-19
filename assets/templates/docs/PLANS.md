@@ -44,6 +44,7 @@ Read:
 - Evaluator judgment exists to catch false positives after checks pass, not to excuse red checks.
 - If the tests do not prove the intended behavior, tighten the task contract and checks before promoting.
 - Fast local checks are for iteration speed; the required commands remain the promotion contract.
+- If a feature depends on an outside resource, include E2E coverage for that feature before promotion.
 
 ## When The Current Queue Is Done
 - Do not treat an empty active queue as the end of the product.

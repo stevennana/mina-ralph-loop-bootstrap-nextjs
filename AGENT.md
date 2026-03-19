@@ -29,6 +29,8 @@ When enhancing this skill, preserve these invariants:
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
 - Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
 - Tests should explain the behavior they protect when that context would otherwise be lost across loops.
+- External-resource features should require E2E coverage before promotion.
+- Optional companion skills should be considered only when the user allows them and they are actually installed.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order

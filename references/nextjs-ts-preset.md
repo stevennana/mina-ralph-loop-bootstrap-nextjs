@@ -32,6 +32,7 @@ Recommended shapes:
 
 For this skill, `verify` is not advisory. Generated task contracts should treat the required test-bearing commands as hard promotion gates.
 During day-to-day implementation loops, prefer narrower checks first and reserve `verify` for completion gating.
+If a feature depends on an outside resource such as AI chat or another remote integration, the relevant E2E scenario should be part of the promotion contract.
 
 ## Minimum scaffold
 
@@ -59,3 +60,4 @@ Keep these defaults aligned unless there is a strong reason not to:
 - Do not leave the repo in a state where the docs prescribe one command contract and `package.json` exposes another.
 - Do not leave the repo in a state where the evaluator can promote tasks despite failing required test commands.
 - Encourage focused unit and slice-level checks during implementation so the loop can turn quickly without weakening the final promotion gate.
+- Ensure external-resource features are represented in Playwright or equivalent E2E coverage before the related task is promotable.

@@ -37,6 +37,7 @@ Use layered checks:
 
 Promotion is blocked when required checks fail. Required test commands in active task contracts are hard gates, not suggestions.
 While iterating, prefer the smallest targeted check for the code you just changed. Use the full required command set before considering the task done.
+If a feature depends on an outside resource such as AI chat or another remote service, keep it in the required E2E flows before allowing promotion.
 
 ### Required E2E flows
 {{REQUIRED_E2E_BULLETS}}
@@ -52,6 +53,10 @@ While iterating, prefer the smallest targeted check for the code you just change
 - Search the codebase before concluding that a thing is unimplemented.
 - Prefer multiple targeted searches over one broad assumption.
 - If you find a partial implementation, adapt or complete it instead of duplicating it blindly.
+
+## Optional Companion Skills
+- If the customer allows them and they are installed, consider relevant companion skills before planning or implementation.
+- Good candidates include database, Next.js pattern, UI design, responsive UI, and clean-architecture skills.
 
 ## Done Definition
 {{DONE_DEFINITION}}
