@@ -39,7 +39,7 @@ When enhancing this skill, preserve these invariants:
 - External-resource features should require E2E coverage before promotion.
 - Optional companion skills should be considered only when the user allows them and they are actually installed.
 - The pinned companion skill set should be checked and recommended before product analysis, founder discovery, and docs are written.
-- If relevant companion skills are missing, the startup guidance should print the install commands immediately instead of only offering to provide them.
+- If relevant companion skills are missing, the startup guidance should ask about auto-install first, use the helper installer by default, and keep the manual commands correct as fallback guidance.
 - The startup guidance should use the pinned manual install commands from this skill, not guessed catalog paths.
 - The pinned manual install commands and the helper installer paths must stay aligned with the actual upstream repo layout.
 - The startup guidance should be emitted once, not duplicated.

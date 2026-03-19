@@ -47,6 +47,14 @@ def _product_spec_doc(filename: str) -> str:
     return f"docs/product-specs/{filename}"
 
 
+def _boolish(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y", "required"}
+    return False
+
+
 def _is_hardening_task(task: dict[str, object]) -> bool:
     title = str(task.get("title") or "").lower()
     task_id = str(task.get("id") or "").lower()
@@ -64,7 +72,31 @@ def _product_spec_docs(prompt_docs: list[str]) -> list[str]:
     return [doc for doc in prompt_docs if doc.startswith("docs/product-specs/")]
 
 
-def derive_exec_tasks_from_feature_specs(feature_specs: list[dict[str, object]], project_name: str) -> list[dict[str, object]]:
+def _runtime_startup_required(feature_specs: list[dict[str, object]], answers_json: dict[str, object]) -> bool:
+    if any(
+        _boolish(answers_json.get(key))
+        for key in (
+            "RUNTIME_STARTUP_REQUIRED",
+            "STARTUP_SMOKE_REQUIRED",
+            "HAS_PERSISTENT_RUNTIME_STATE",
+            "USES_PERSISTENT_RUNTIME_STATE",
+        )
+    ):
+        return True
+
+    for spec in feature_specs:
+        commands = _as_list(spec.get("required_commands")) + _as_list(spec.get("required_checks"))
+        if any(command == "npm run start:smoke" for command in commands):
+            return True
+    return False
+
+
+def derive_exec_tasks_from_feature_specs(
+    feature_specs: list[dict[str, object]],
+    project_name: str,
+    *,
+    runtime_startup_required: bool,
+) -> list[dict[str, object]]:
     derived: list[dict[str, object]] = []
     ordered_specs: list[tuple[str, dict[str, object]]] = []
     for spec in feature_specs:
@@ -131,6 +163,24 @@ def derive_exec_tasks_from_feature_specs(feature_specs: list[dict[str, object]],
             }
         )
 
+    hardening_required_commands = ["npm run verify"]
+    hardening_required_checks = ["npm run verify"]
+    hardening_exit_criteria = [
+        "`npm run verify` passes.",
+        "Reliability and security docs match the implementation.",
+        "Remaining debt is explicit.",
+    ]
+    hardening_evaluator_notes = [
+        "Promote only when the repository is ready for longer unattended Ralph-loop runs under the current task contract.",
+    ]
+    if runtime_startup_required:
+        hardening_required_commands.append("npm run start:smoke")
+        hardening_required_checks.append("npm run start:smoke")
+        hardening_exit_criteria.insert(1, "`npm run start:smoke` passes.")
+        hardening_evaluator_notes.append(
+            "Do not promote if the production-style startup path still fails for normal repo reasons such as missing runtime preparation."
+        )
+
     derived.append(
         {
             "id": hardening_id,
@@ -145,7 +195,7 @@ def derive_exec_tasks_from_feature_specs(feature_specs: list[dict[str, object]],
                 "docs/RELIABILITY.md",
                 "docs/SECURITY.md",
             ],
-            "required_commands": ["npm run verify"],
+            "required_commands": hardening_required_commands,
             "required_files": ["scripts/ralph/README.md"],
             "human_review_triggers": [
                 "The task expands into broad feature work.",
@@ -161,15 +211,9 @@ def derive_exec_tasks_from_feature_specs(feature_specs: list[dict[str, object]],
                 "major new product features",
                 "unrelated infrastructure expansion",
             ],
-            "exit_criteria": [
-                "`npm run verify` passes.",
-                "Reliability and security docs match the implementation.",
-                "Remaining debt is explicit.",
-            ],
-            "required_checks": ["npm run verify"],
-            "evaluator_notes": [
-                "Promote only when the repository is ready for longer unattended Ralph-loop runs under the current task contract.",
-            ],
+            "exit_criteria": hardening_exit_criteria,
+            "required_checks": hardening_required_checks,
+            "evaluator_notes": hardening_evaluator_notes,
             "summary": "reconcile reliability, security, and loop guidance after the feature slices land",
         }
     )
@@ -230,6 +274,7 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
             raise ValueError("FEATURE_SPECS must be a list when provided.")
 
         spec_rows: list[str] = []
+        feature_filenames: set[str] = set()
         for spec in feature_specs:
             if not isinstance(spec, dict):
                 raise ValueError("Each FEATURE_SPECS entry must be an object.")
@@ -238,12 +283,14 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
                 raise ValueError("Each FEATURE_SPECS entry must include a non-empty title.")
             slug = str(spec.get("slug") or _slugify(title))
             filename = str(spec.get("filename") or f"{slug}.md")
+            feature_filenames.add(filename)
             status = str(spec.get("status") or "confirmed")
             scope = str(spec.get("scope") or title)
             goal = str(spec.get("goal") or "")
             trigger = str(spec.get("trigger") or "")
             behavior = _as_list(spec.get("behavior_bullets"))
             validation = _as_list(spec.get("validation_bullets"))
+            spec_rows.append(f"| `{filename}` | {status} | {scope} |")
 
             if not goal or not trigger or not behavior or not validation:
                 raise ValueError(
@@ -276,9 +323,12 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
                 ),
                 encoding="utf-8",
             )
-            spec_rows.append(f"| `{filename}` | {status} | {scope} |")
 
-        if spec_rows:
+        generic_core_flow_path = specs_dir / "core-flow.md"
+        if feature_filenames and "core-flow.md" not in feature_filenames and generic_core_flow_path.exists():
+            generic_core_flow_path.unlink()
+
+        if feature_specs:
             index_path = specs_dir / "index.md"
             index_path.write_text(
                 "\n".join(
@@ -307,8 +357,14 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
 
     feature_spec_objects = feature_specs if isinstance(feature_specs, list) else []
 
+    runtime_startup_required = _runtime_startup_required(feature_spec_objects, answers_json)
+
     if exec_tasks is None and feature_spec_objects:
-        exec_tasks = derive_exec_tasks_from_feature_specs(feature_spec_objects, repo_root.name)
+        exec_tasks = derive_exec_tasks_from_feature_specs(
+            feature_spec_objects,
+            repo_root.name,
+            runtime_startup_required=runtime_startup_required,
+        )
 
     if exec_tasks is not None:
         if not isinstance(exec_tasks, list):
@@ -336,6 +392,8 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
             filename = str(task.get("filename") or f"{task_id}.md")
             objective = str(task.get("objective") or "")
             why_now = str(task.get("why_now") or "")
+            summary = str(task.get("summary") or objective)
+            sequence_lines.append(f"{len(sequence_lines) + 1}. `{filename}` -> {summary}")
             evaluator_notes = _as_list(task.get("evaluator_notes"))
             prompt_docs = _as_list(task.get("prompt_docs"))
             required_commands = _as_list(task.get("required_commands"))
@@ -459,10 +517,7 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
                 "\n".join(body_lines),
                 encoding="utf-8",
             )
-            summary = str(task.get("summary") or objective)
-            sequence_lines.append(f"{len(sequence_lines) + 1}. `{filename}` -> {summary}")
-
-        if sequence_lines:
+        if exec_tasks:
             active_index_path = active_dir / "index.md"
             active_index_path.write_text(
                 "\n".join(

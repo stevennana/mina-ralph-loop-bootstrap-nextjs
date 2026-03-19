@@ -45,7 +45,7 @@ SKILLS: dict[str, CompanionSkill] = {
         purpose="database and schema work",
         pinned_commands=(
             "git clone https://github.com/prisma/skills.git",
-            "cp -r prisma-cli ~/.codex/skills/prisma-cli",
+            "cp -r skills/prisma-cli ~/.codex/skills/prisma-cli",
         ),
     ),
     "nextjs-app-router-patterns": CompanionSkill(

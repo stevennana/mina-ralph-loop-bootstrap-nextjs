@@ -241,7 +241,7 @@ If the customer allows them and they are relevant to the work, consider installi
 
 ```bash
 git clone https://github.com/prisma/skills.git
-cp -r prisma-cli ~/.codex/skills/prisma-cli
+cp -r skills/prisma-cli ~/.codex/skills/prisma-cli
 ```
 
 ### Next.js skill
