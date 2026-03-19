@@ -47,6 +47,7 @@ It also adopts a few practical Ralph-style operating rules:
 - `references/feature-slicing.md`: rules for turning product features into multiple specs and small executable tasks
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
+- `scripts/companion_skills.py`: checks, prints commands for, and installs the pinned companion skills
 - `scripts/template_utils.py`: shared rendering helpers
 - `references/expansion-mode.md`: rules for generating the next active queue after the initial tranche is complete
 - `assets/templates/root/`: root-file templates
@@ -162,6 +163,7 @@ If the customer allows them, this recommendation should happen before documentat
 
 If relevant skills are missing, the skill should tell the user that clearly and print the manual installation commands immediately before continuing.
 It should not block on upstream catalog verification first; the pinned commands in this skill are the source of truth for that startup message.
+It should propose and install them one skill at a time rather than dumping all missing skills at once.
 
 ### 5. Answer the discovery questions
 
@@ -230,6 +232,24 @@ When available and allowed:
 - use `nextjs-app-router-patterns` before documentation, planning, and implementation of App Router structure
 - use `frontend-design` or `frontend-responsive-ui` before documentation, planning, and implementation of significant UI work
 - use `clean-architecture` before documentation, planning, and implementation of major boundaries or system structure
+
+## Companion Skill Helper Script
+
+This repo includes a pinned helper for the startup flow:
+
+```bash
+python3 scripts/companion_skills.py status --json
+python3 scripts/companion_skills.py command nextjs-app-router-patterns
+python3 scripts/companion_skills.py install nextjs-app-router-patterns
+```
+
+Recommended startup behavior:
+
+1. check which relevant companion skills are missing
+2. propose the first missing skill only
+3. if the user accepts, install it
+4. move to the next missing skill
+5. start the interview only after the user is ready to continue
 
 ### 6. Let the skill materialize the repo
 

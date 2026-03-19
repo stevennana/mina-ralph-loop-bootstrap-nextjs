@@ -39,6 +39,7 @@ When enhancing this skill, preserve these invariants:
 - If relevant companion skills are missing, the startup guidance should print the install commands immediately instead of only offering to provide them.
 - The startup guidance should use the pinned manual install commands from this skill, not guessed catalog paths.
 - The startup guidance should be emitted once, not duplicated.
+- Companion-skill installs should be proposed and run one skill at a time before the interview starts.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order
@@ -53,7 +54,8 @@ Before changing behavior, read these files in order:
 6. `references/nextjs-ts-preset.md`
 7. `scripts/render_docs.py`
 8. `scripts/install_ralph.py`
-9. the relevant files under `assets/templates/`
+9. `scripts/companion_skills.py`
+10. the relevant files under `assets/templates/`
 
 ## Repository Map
 

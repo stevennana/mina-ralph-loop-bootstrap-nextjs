@@ -38,6 +38,7 @@ Use these scripts when bootstrapping:
 
 - `scripts/render_docs.py`
 - `scripts/install_ralph.py`
+- `scripts/companion_skills.py`
 
 ## Workflow
 
@@ -64,14 +65,16 @@ Do not assume a feature, helper, route, or test is missing just because the firs
 ### 1b. Check companion skills before discovery
 
 Before founder discovery and before writing docs, check whether relevant companion skills are already installed under `~/.codex/skills`.
+Use `python3 <skill>/scripts/companion_skills.py status` as the source of truth for the pinned companion-skill set.
 
 If the user allows companion skills:
 
 - recommend the relevant ones before documentation starts, not after specs are already written
 - if they are already installed, plan to use them during interview framing, docs generation, and architecture/spec shaping
-- if they are not installed, tell the user which ones are missing and print the relevant manual installation commands immediately
+- if they are not installed, tell the user which ones are missing and print the relevant install command immediately
 - do not require network-based catalog verification before printing those commands; use the pinned commands in this skill directly
 - do not block the bootstrap if the user declines or skips installation; continue with the built-in workflow
+- handle installs one skill at a time: propose the first missing relevant skill, install it if the user agrees, then move to the next one
 
 Recommended companion skills by area:
 
@@ -103,6 +106,14 @@ git clone https://github.com/MKToronto/python-clean-architecture-codex.git
 cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture
 ```
 
+Helper script usage:
+
+```bash
+python3 <skill>/scripts/companion_skills.py status --json
+python3 <skill>/scripts/companion_skills.py command prisma-cli
+python3 <skill>/scripts/companion_skills.py install prisma-cli
+```
+
 ### 2. Interview until the docs are decision-complete
 
 Ask the user questions in stages, not all at once.
@@ -120,6 +131,7 @@ At the startup handoff stage, do not ask for product intent yet; wait for the us
 At the startup handoff, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
 If companion skills are relevant and missing, mention that before the first substantive product question, print the install commands inline, and let the user choose whether to install them first.
 Do not replace the pinned install commands with guessed `skill-installer` or upstream-catalog commands unless the user explicitly asks to use the installer flow.
+Install and propose companion skills one at a time rather than dumping every missing skill at once.
 If the session remains in `Default` mode, continue with one-question-at-a-time plain-text questions, suggested options, and free-form fallback.
 Prefer one question at a time unless the user explicitly asks for batching.
 
