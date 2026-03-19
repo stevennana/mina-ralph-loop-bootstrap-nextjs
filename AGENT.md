@@ -23,6 +23,7 @@ When enhancing this skill, preserve these invariants:
 - The interview must produce a concrete test strategy before docs are considered complete.
 - The preferred interview style is one question at a time, with suggested options and a free-form fallback.
 - At interview start, the skill should recommend `Plan` mode when the user wants selectable option-list UX.
+- At interview start, the skill should handle companion-skill guidance first, then `Plan` mode guidance, then a `continue` handoff before asking the first product question.
 - The same skill should support later feature expansion by updating docs first and seeding the next exec-plan wave.
 - The supported stack stays intentionally narrow unless the skill contract is explicitly expanded.
 - `SKILL.md` remains the operating contract for another Codex instance.

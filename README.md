@@ -180,12 +180,14 @@ It should also identify the distinct user-visible features that need separate sp
 
 Preferred interaction style:
 
+- before the first substantive product question, the skill should first handle companion-skill guidance, then `Plan` mode guidance, then a short `continue` handoff
 - the skill should ask one question at a time
 - when appropriate, it should offer a few reasonable options and mark a recommended one
 - the user should always be able to ignore the options and answer in free form
 - at the start of founder discovery, it should recommend `Plan` mode if the user wants selectable option lists
 
 In `Plan` mode, the skill should prefer selectable option lists when the session supports them. In `Default` mode, these remain plain-text options. The user does not need to prepare answers in another editor unless they prefer to draft them there.
+The startup message should end by telling the user to say `continue` when ready for the first interview question.
 
 ## Recommended Companion Skills
 

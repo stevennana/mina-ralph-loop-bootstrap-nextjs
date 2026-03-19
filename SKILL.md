@@ -82,7 +82,17 @@ Recommended companion skills by area:
 ### 2. Interview until the docs are decision-complete
 
 Ask the user questions in stages, not all at once.
-At the start of founder discovery, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
+Before the first substantive product question, follow this exact startup order:
+
+1. companion skill recommendation and missing-install-command guidance
+2. `Plan` mode recommendation, explicitly telling the user it enables selectable option lists
+3. a short handoff telling the user to say `continue` when ready to begin the interview
+4. only after that, ask the first substantive product question
+
+Do not combine the handoff with the first product question.
+At the startup handoff stage, do not ask for product intent yet; wait for the user to say `continue` or otherwise clearly indicate readiness.
+
+At the startup handoff, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
 If companion skills are relevant and missing, mention that before the first substantive product question, print the install commands inline, and let the user choose whether to install them first.
 If the session remains in `Default` mode, continue with one-question-at-a-time plain-text questions, suggested options, and free-form fallback.
 Prefer one question at a time unless the user explicitly asks for batching.
