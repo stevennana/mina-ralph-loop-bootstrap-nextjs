@@ -21,6 +21,12 @@ Its job is to:
 6. document how to run one loop or an unattended loop
 7. re-enter a bootstrapped repo later to define the next feature wave and its exec-plans
 
+## Harness Flow
+
+This is the end-to-end harness-engineering flow the skill is meant to apply, from founder discovery through repeated Ralph-loop execution and later feature-wave expansion.
+
+![Harness-engineering Ralph loop flow](assets/readme/ralph-loop-harness-flow.svg)
+
 ## Core Model
 
 This skill follows the harness-engineering model:
