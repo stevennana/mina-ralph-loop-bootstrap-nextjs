@@ -161,6 +161,7 @@ If the customer allows them, this recommendation should happen before documentat
 - UI and responsive design direction
 
 If relevant skills are missing, the skill should tell the user that clearly and print the manual installation commands immediately before continuing.
+It should not block on upstream catalog verification first; the pinned commands in this skill are the source of truth for that startup message.
 
 ### 5. Answer the discovery questions
 
@@ -188,6 +189,7 @@ Preferred interaction style:
 
 In `Plan` mode, the skill should prefer selectable option lists when the session supports them. In `Default` mode, these remain plain-text options. The user does not need to prepare answers in another editor unless they prefer to draft them there.
 The startup message should end by telling the user to say `continue` when ready for the first interview question.
+The startup message should be printed once, not duplicated.
 
 ## Recommended Companion Skills
 

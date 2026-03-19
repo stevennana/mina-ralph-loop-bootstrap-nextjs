@@ -70,6 +70,7 @@ If the user allows companion skills:
 - recommend the relevant ones before documentation starts, not after specs are already written
 - if they are already installed, plan to use them during interview framing, docs generation, and architecture/spec shaping
 - if they are not installed, tell the user which ones are missing and print the relevant manual installation commands immediately
+- do not require network-based catalog verification before printing those commands; use the pinned commands in this skill directly
 - do not block the bootstrap if the user declines or skips installation; continue with the built-in workflow
 
 Recommended companion skills by area:
@@ -78,6 +79,29 @@ Recommended companion skills by area:
 - `nextjs-app-router-patterns` for Next.js App Router patterns
 - `frontend-design` and `frontend-responsive-ui` for UI and responsive design work
 - `clean-architecture` for architecture and boundary shaping
+
+Pinned manual install commands:
+
+```bash
+git clone https://github.com/prisma/skills.git
+cp -r skills/prisma-cli ~/.codex/skills/prisma-cli
+```
+
+```bash
+git clone https://github.com/sickn33/antigravity-awesome-skills.git
+cp -r antigravity-awesome-skills/skills/nextjs-app-router-patterns ~/.codex/skills/
+```
+
+```bash
+git clone https://github.com/am-will/codex-skills.git
+cp -r codex-skills/skills/frontend-design ~/.codex/skills/
+cp -r codex-skills/skills/frontend-responsive-ui ~/.codex/skills/
+```
+
+```bash
+git clone https://github.com/MKToronto/python-clean-architecture-codex.git
+cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture
+```
 
 ### 2. Interview until the docs are decision-complete
 
@@ -90,10 +114,12 @@ Before the first substantive product question, follow this exact startup order:
 4. only after that, ask the first substantive product question
 
 Do not combine the handoff with the first product question.
+Do not repeat the startup guidance twice.
 At the startup handoff stage, do not ask for product intent yet; wait for the user to say `continue` or otherwise clearly indicate readiness.
 
 At the startup handoff, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
 If companion skills are relevant and missing, mention that before the first substantive product question, print the install commands inline, and let the user choose whether to install them first.
+Do not replace the pinned install commands with guessed `skill-installer` or upstream-catalog commands unless the user explicitly asks to use the installer flow.
 If the session remains in `Default` mode, continue with one-question-at-a-time plain-text questions, suggested options, and free-form fallback.
 Prefer one question at a time unless the user explicitly asks for batching.
 
