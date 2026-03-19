@@ -26,6 +26,7 @@ Read these references before asking questions or writing files:
 - [references/interview-checklist.md](references/interview-checklist.md)
 - [references/nextjs-ts-preset.md](references/nextjs-ts-preset.md)
 - [references/expansion-mode.md](references/expansion-mode.md)
+- [references/feature-slicing.md](references/feature-slicing.md)
 
 Open templates and copied Ralph assets only when you need them:
 
@@ -60,10 +61,29 @@ For continuation runs:
 Before making implementation claims or writing replacement code, search the codebase first.
 Do not assume a feature, helper, route, or test is missing just because the first search result was incomplete.
 
+### 1b. Check companion skills before discovery
+
+Before founder discovery and before writing docs, check whether relevant companion skills are already installed under `~/.codex/skills`.
+
+If the user allows companion skills:
+
+- recommend the relevant ones before documentation starts, not after specs are already written
+- if they are already installed, plan to use them during interview framing, docs generation, and architecture/spec shaping
+- if they are not installed, tell the user which ones are missing and provide the manual installation commands
+- do not block the bootstrap if the user declines or skips installation; continue with the built-in workflow
+
+Recommended companion skills by area:
+
+- `prisma-cli` for database and schema work
+- `nextjs-app-router-patterns` for Next.js App Router patterns
+- `frontend-design` and `frontend-responsive-ui` for UI and responsive design work
+- `clean-architecture` for architecture and boundary shaping
+
 ### 2. Interview until the docs are decision-complete
 
 Ask the user questions in stages, not all at once.
 At the start of founder discovery, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
+If companion skills are relevant and missing, mention that before the first substantive product question so the user can choose whether to install them first.
 If the session remains in `Default` mode, continue with one-question-at-a-time plain-text questions, suggested options, and free-form fallback.
 Prefer one question at a time unless the user explicitly asks for batching.
 
@@ -83,8 +103,10 @@ Ask only what is needed to define the next feature tranche and its tests without
 
 The interview must make the test strategy explicit before scaffolding starts.
 Do not accept vague answers like "we should have decent coverage" or "we can add tests later."
+It must also identify the distinct in-scope user-visible features so the generated specs and task queue can be sliced by feature instead of collapsing everything into one generic flow.
 You need a clear statement of:
 
+- which distinct user-visible features exist in v1
 - which unit-level behaviors must be covered
 - which end-to-end flows must be covered
 - which external-resource features require end-to-end proof before promotion
@@ -126,10 +148,17 @@ python3 <skill>/scripts/render_docs.py --answers /tmp/ralph-bootstrap-answers.js
 Then expand the rendered docs into project-specific content.
 
 - Replace any remaining generic placeholders.
-- Add project-specific design docs and product specs beyond the baseline templates when the product requires them.
+- Add project-specific design docs and product specs beyond the baseline templates whenever the product has more than one distinct user-visible feature.
 - Ensure `AGENTS.md` stays short and points into the docs tree.
 - Ensure active execution plans contain real `taskmeta` blocks and deterministic checks.
 - Ensure the docs clearly state that promotion is blocked when required test commands fail.
+- Use [references/feature-slicing.md](references/feature-slicing.md) to decide how many product specs and executable tasks are needed.
+
+When the answers JSON includes structured feature data:
+
+- populate `FEATURE_SPECS` with one entry per distinct user-visible feature
+- populate `EXEC_TASKS` with a small sequenced task queue rather than only the baseline trio
+- let `scripts/render_docs.py` materialize those feature specs and executable task files alongside the baseline docs
 
 For continuation runs:
 
@@ -200,6 +229,9 @@ At minimum include:
 - one first user-visible vertical slice
 - one validation or hardening task
 
+Treat that as a floor, not a target.
+If the product has multiple distinct user-visible features, generate as many small active tasks as needed to represent them.
+
 Each active task must have:
 
 - `taskmeta`
@@ -225,6 +257,7 @@ The next wave should normally include:
 - one follow-up hardening or integration task
 
 Update `docs/exec-plans/active/index.md` so the new sequence is readable as the next tranche of work.
+Do not hide multiple major feature fronts inside a single “first slice” task.
 
 ### 6b. Expand after the initial queue is complete
 
@@ -268,7 +301,7 @@ If the user explicitly allows companion skills and they are installed, consider 
 - `frontend-design` and `frontend-responsive-ui` for UI and responsive design work
 - `clean-architecture` for architecture and boundary shaping
 
-Do not assume they are present. Use them only when installed and clearly relevant.
+Do not assume they are present. Prefer checking and recommending them before documentation starts. Use them only when installed and clearly relevant.
 
 ## Important Rules
 
@@ -283,6 +316,8 @@ Do not assume they are present. Use them only when installed and clearly relevan
 - When adding or changing tests, capture why the test exists and what regression it prevents.
 - External-resource features must be exercised by E2E before promotion.
 - If the user allows companion skills and they are installed, consider them before planning and implementation.
+- Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.
+- Do not let the generator stop at one generic `core-flow.md` and one oversized first-slice task when the product clearly has several feature fronts.
 - Prefer parallel search and analysis over parallel validation.
 - Do not broaden the first version beyond the Next.js preset.
 - Do not leave the repo with aspirational docs that the scaffold contradicts.

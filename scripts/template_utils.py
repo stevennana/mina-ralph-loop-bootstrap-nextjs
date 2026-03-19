@@ -4,16 +4,21 @@ import json
 from pathlib import Path
 import re
 import shutil
-from typing import Iterable
+from typing import Any, Iterable
 
 
 PLACEHOLDER_PATTERN = re.compile(r"\{\{([A-Z0-9_]+)\}\}")
 
 
-def load_answers(path: Path) -> dict[str, str]:
+def load_answers_json(path: Path) -> dict[str, Any]:
     data = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(data, dict):
         raise ValueError("Answers JSON must be an object.")
+    return data
+
+
+def load_answers(path: Path) -> dict[str, str]:
+    data = load_answers_json(path)
     normalized: dict[str, str] = {}
     for key, value in data.items():
         if not isinstance(key, str):

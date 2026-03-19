@@ -44,6 +44,7 @@ It also adopts a few practical Ralph-style operating rules:
 
 - `SKILL.md`: operating contract for Codex
 - `references/`: harness model, doc baseline, interview checklist, and Next.js preset
+- `references/feature-slicing.md`: rules for turning product features into multiple specs and small executable tasks
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
 - `scripts/template_utils.py`: shared rendering helpers
@@ -60,12 +61,13 @@ The skill is meant to run in this order:
 1. inspect the target repo
 2. interview the founder until the docs can be written without guessing
    The interview must also produce a concrete test strategy and explicit promotion-blocking checks.
-3. render the baseline docs tree
-4. expand those docs into project-specific material
-5. scaffold the Next.js app to match the docs
-6. install and adapt the Ralph loop
-7. seed the initial active task queue
-8. validate commands and hand back operator guidance
+3. map the distinct user-visible features that need their own specs and task slices
+4. render the baseline docs tree
+5. expand those docs into project-specific material
+6. scaffold the Next.js app to match the docs
+7. install and adapt the Ralph loop
+8. seed the initial active task queue
+9. validate commands and hand back operator guidance
 
 ## Limitations
 
@@ -146,7 +148,21 @@ You can also give the short brief inline:
 Use $mina-ralph-loop-bootstrap-nextjs to bootstrap this repository into a docs-first Ralph-style Next.js App Router + TypeScript project.
 ```
 
-### 4. Answer the discovery questions
+### 4. Check optional companion skills before discovery
+
+Before founder discovery and before writing specs, the skill should check whether relevant companion skills are already installed in `~/.codex/skills`.
+
+If the customer allows them, this recommendation should happen before documentation starts because these skills can affect:
+
+- interview framing
+- architecture and boundary decisions
+- route and App Router structure
+- database and schema choices
+- UI and responsive design direction
+
+If relevant skills are missing, the skill should tell the user that clearly and provide the manual installation commands before continuing.
+
+### 5. Answer the discovery questions
 
 The skill will ask staged founder questions covering:
 
@@ -160,6 +176,7 @@ The skill will ask staged founder questions covering:
 
 The stop condition is not just "enough detail to scaffold." The interview must make the test strategy explicit enough that the generated plans can say which checks are required and which failures block promotion.
 That includes calling out external-resource features that must be covered by E2E before promotion.
+It should also identify the distinct user-visible features that need separate specs and smaller task slices.
 
 Preferred interaction style:
 
@@ -205,12 +222,12 @@ cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture
 
 When available and allowed:
 
-- use `prisma-cli` before planning database schema or migration work
-- use `nextjs-app-router-patterns` before shaping App Router structure
-- use `frontend-design` or `frontend-responsive-ui` before planning or implementing significant UI work
-- use `clean-architecture` before defining major boundaries or system structure
+- use `prisma-cli` before documentation, planning, and implementation of database schema or migration work
+- use `nextjs-app-router-patterns` before documentation, planning, and implementation of App Router structure
+- use `frontend-design` or `frontend-responsive-ui` before documentation, planning, and implementation of significant UI work
+- use `clean-architecture` before documentation, planning, and implementation of major boundaries or system structure
 
-### 5. Let the skill materialize the repo
+### 6. Let the skill materialize the repo
 
 The expected output includes:
 
@@ -238,6 +255,12 @@ When the skill is run manually or extended, these scripts are the entry points:
 python3 scripts/render_docs.py --answers /tmp/ralph-bootstrap-answers.json --repo-root /path/to/target-repo
 python3 scripts/install_ralph.py --repo-root /path/to/target-repo
 ```
+
+If the answers JSON includes structured `FEATURE_SPECS` and `EXEC_TASKS`, `scripts/render_docs.py` now materializes:
+
+- multiple product spec files under `docs/product-specs/`
+- a feature-sliced active queue under `docs/exec-plans/active/`
+- refreshed `index.md` files for those directories
 
 ## Enhancing This Skill
 

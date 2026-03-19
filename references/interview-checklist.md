@@ -3,6 +3,7 @@
 Use this checklist to decide whether the user's answers are complete enough to write the baseline docs.
 If the repo is already bootstrapped and the user wants the next feature wave, combine this with `references/expansion-mode.md` and ask only for the delta.
 Preferred interaction style: at interview start, recommend `Plan` mode if the user wants selectable option lists; then ask one question at a time, give suggested options when useful, and always allow a free-form answer.
+Before the first substantive product question, check whether relevant companion skills are installed and, if the user allows them, recommend installing missing ones before documentation starts.
 
 ## Identity
 
@@ -16,6 +17,7 @@ Preferred interaction style: at interview start, recommend `Plan` mode if the us
 - v1 goals
 - explicit non-goals
 - what must be demoable in v1
+- which distinct user-visible features should each become their own spec or task slice
 
 ## Domain model
 
@@ -68,6 +70,7 @@ You can clearly write:
 - the top-level docs
 - at least one design doc
 - at least one product spec
+- a clear feature map for how many product specs and active tasks should be created
 - an initial active task queue with deterministic checks
 - a concrete test strategy with explicit promotion-blocking commands
 

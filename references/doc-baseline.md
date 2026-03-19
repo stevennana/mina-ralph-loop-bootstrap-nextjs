@@ -36,6 +36,7 @@ Generate this baseline before treating the Ralph loop as installed.
 
 - `index.md`
 - at least one project-specific product spec
+- if more than one user-visible feature is in scope, create one spec per major feature instead of collapsing them into one generic flow doc
 
 ## `docs/exec-plans/`
 
@@ -43,6 +44,7 @@ Generate this baseline before treating the Ralph loop as installed.
 - at least one active task contract with `taskmeta`
 - `tech-debt-tracker.md`
 - create `completed/` even if empty
+- if the product has multiple major features, the initial queue should contain multiple small feature-sliced tasks rather than a single omnibus “first slice”
 
 ## `docs/generated/`
 

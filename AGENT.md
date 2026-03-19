@@ -28,11 +28,13 @@ When enhancing this skill, preserve these invariants:
 - `SKILL.md` remains the operating contract for another Codex instance.
 - The references define stop conditions and baseline requirements; code and templates must agree with them.
 - Generated repos must expose deterministic commands: `lint`, `typecheck`, `build`, `test:unit`, `test:e2e`, and `verify`.
+- Multiple user-visible features should not collapse into one generic product spec and one oversized first-slice task.
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
 - Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
 - Tests should explain the behavior they protect when that context would otherwise be lost across loops.
 - External-resource features should require E2E coverage before promotion.
 - Optional companion skills should be considered only when the user allows them and they are actually installed.
+- Relevant companion skills should be checked and recommended before founder discovery and before docs are written.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order
@@ -43,10 +45,11 @@ Before changing behavior, read these files in order:
 2. `references/harness-engineering.md`
 3. `references/doc-baseline.md`
 4. `references/interview-checklist.md`
-5. `references/nextjs-ts-preset.md`
-6. `scripts/render_docs.py`
-7. `scripts/install_ralph.py`
-8. the relevant files under `assets/templates/`
+5. `references/feature-slicing.md`
+6. `references/nextjs-ts-preset.md`
+7. `scripts/render_docs.py`
+8. `scripts/install_ralph.py`
+9. the relevant files under `assets/templates/`
 
 ## Repository Map
 
