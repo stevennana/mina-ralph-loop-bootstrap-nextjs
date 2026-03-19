@@ -35,6 +35,7 @@ When enhancing this skill, preserve these invariants:
 - External-resource features should require E2E coverage before promotion.
 - Optional companion skills should be considered only when the user allows them and they are actually installed.
 - Relevant companion skills should be checked and recommended before founder discovery and before docs are written.
+- If relevant companion skills are missing, the startup guidance should print the install commands immediately instead of only offering to provide them.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order

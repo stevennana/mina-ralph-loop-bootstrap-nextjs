@@ -3,7 +3,7 @@
 Use this checklist to decide whether the user's answers are complete enough to write the baseline docs.
 If the repo is already bootstrapped and the user wants the next feature wave, combine this with `references/expansion-mode.md` and ask only for the delta.
 Preferred interaction style: at interview start, recommend `Plan` mode if the user wants selectable option lists; then ask one question at a time, give suggested options when useful, and always allow a free-form answer.
-Before the first substantive product question, check whether relevant companion skills are installed and, if the user allows them, recommend installing missing ones before documentation starts.
+Before the first substantive product question, check whether relevant companion skills are installed and, if the user allows them, recommend installing missing ones before documentation starts and print the install commands immediately.
 
 ## Identity
 

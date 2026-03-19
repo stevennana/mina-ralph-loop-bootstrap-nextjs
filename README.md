@@ -160,7 +160,7 @@ If the customer allows them, this recommendation should happen before documentat
 - database and schema choices
 - UI and responsive design direction
 
-If relevant skills are missing, the skill should tell the user that clearly and provide the manual installation commands before continuing.
+If relevant skills are missing, the skill should tell the user that clearly and print the manual installation commands immediately before continuing.
 
 ### 5. Answer the discovery questions
 
