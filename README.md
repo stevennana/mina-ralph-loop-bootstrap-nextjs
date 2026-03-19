@@ -45,6 +45,7 @@ It also adopts a few practical Ralph-style operating rules:
 - `SKILL.md`: operating contract for Codex
 - `references/`: harness model, doc baseline, interview checklist, and Next.js preset
 - `references/feature-slicing.md`: rules for turning product features into multiple specs and small executable tasks
+- `references/doc-quality-loop.md`: quality gate for refining docs and exec-plan pages until they are decision-complete
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
 - `scripts/companion_skills.py`: checks, prints commands for, and installs the pinned companion skills
@@ -65,10 +66,13 @@ The skill is meant to run in this order:
 3. map the distinct user-visible features that need their own specs and task slices
 4. render the baseline docs tree
 5. expand those docs into project-specific material
-6. scaffold the Next.js app to match the docs
-7. install and adapt the Ralph loop
-8. seed the initial active task queue
-9. validate commands and hand back operator guidance
+6. improve the supporting architecture/design/product docs until they are specific enough
+7. generate smaller exec-plan pages for individual features
+8. review each exec-plan page one by one and loop on quality if needed
+9. scaffold the Next.js app to match the docs
+10. install and adapt the Ralph loop
+11. seed the initial active task queue
+12. validate commands and hand back operator guidance
 
 ## Limitations
 
@@ -149,9 +153,9 @@ You can also give the short brief inline:
 Use $mina-ralph-loop-bootstrap-nextjs to bootstrap this repository into a docs-first Ralph-style Next.js App Router + TypeScript project.
 ```
 
-### 4. Check optional companion skills before discovery
+### 4. Check companion skills before product analysis
 
-Before founder discovery and before writing specs, the skill should check whether relevant companion skills are already installed in `~/.codex/skills`.
+Before product analysis, before reviewing the user’s reference implementation in depth, before founder discovery, and before writing specs, the skill should check whether the pinned companion skill set is already installed in `~/.codex/skills`.
 
 If the customer allows them, this recommendation should happen before documentation starts because these skills can affect:
 
@@ -161,7 +165,9 @@ If the customer allows them, this recommendation should happen before documentat
 - database and schema choices
 - UI and responsive design direction
 
-If relevant skills are missing, the skill should tell the user that clearly and print the manual installation commands immediately before continuing.
+If companion skills are missing, the skill should tell the user that clearly, summarize all missing pinned companion skills up front, and ask whether to auto-install them before continuing.
+The default startup path should use `python3 scripts/companion_skills.py install <skill>` one skill at a time.
+Manual clone/copy commands should be shown as fallback guidance or when the user asks for them directly.
 It should not block on upstream catalog verification first; the pinned commands in this skill are the source of truth for that startup message.
 It should propose and install them one skill at a time rather than dumping all missing skills at once.
 
@@ -183,7 +189,7 @@ It should also identify the distinct user-visible features that need separate sp
 
 Preferred interaction style:
 
-- before the first substantive product question, the skill should first handle companion-skill guidance, then `Plan` mode guidance, then a short `continue` handoff
+- before the first substantive product question, the skill should first resolve companion-skill installation, then review the product/reference context, then separately handle `Plan` mode guidance, then separately give a short `continue` handoff
 - the skill should ask one question at a time
 - when appropriate, it should offer a few reasonable options and mark a recommended one
 - the user should always be able to ignore the options and answer in free form
@@ -192,6 +198,8 @@ Preferred interaction style:
 In `Plan` mode, the skill should prefer selectable option lists when the session supports them. In `Default` mode, these remain plain-text options. The user does not need to prepare answers in another editor unless they prefer to draft them there.
 The startup message should end by telling the user to say `continue` when ready for the first interview question.
 The startup message should be printed once, not duplicated.
+The companion-skill install decision and the `continue` handoff should not be asked in the same prompt.
+The companion-skill install decision should happen before deep product/reference review.
 
 ## Recommended Companion Skills
 
@@ -201,7 +209,7 @@ If the customer allows them and they are relevant to the work, consider installi
 
 ```bash
 git clone https://github.com/prisma/skills.git
-cp -r skills/prisma-cli ~/.codex/skills/prisma-cli
+cp -r prisma-cli ~/.codex/skills/prisma-cli
 ```
 
 ### Next.js skill
@@ -223,7 +231,7 @@ cp -r codex-skills/skills/frontend-responsive-ui ~/.codex/skills/
 
 ```bash
 git clone https://github.com/MKToronto/python-clean-architecture-codex.git
-cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture
+cp -r python-clean-architecture-codex/.agents/skills/clean-architecture ~/.codex/skills/clean-architecture
 ```
 
 When available and allowed:
@@ -245,11 +253,13 @@ python3 scripts/companion_skills.py install nextjs-app-router-patterns
 
 Recommended startup behavior:
 
-1. check which relevant companion skills are missing
-2. propose the first missing skill only
-3. if the user accepts, install it
-4. move to the next missing skill
-5. start the interview only after the user is ready to continue
+1. check which pinned companion skills are missing
+2. summarize all missing pinned companion skills
+3. ask whether to auto-install them before product analysis and the interview
+4. if the user accepts, install the first one
+5. move to the next accepted missing skill
+6. only then review the product/reference context in depth
+7. start the interview only after the user is ready to continue
 
 ### 6. Let the skill materialize the repo
 
@@ -285,6 +295,9 @@ If the answers JSON includes structured `FEATURE_SPECS` and `EXEC_TASKS`, `scrip
 - multiple product spec files under `docs/product-specs/`
 - a feature-sliced active queue under `docs/exec-plans/active/`
 - refreshed `index.md` files for those directories
+
+If `FEATURE_SPECS` is present without `EXEC_TASKS`, the renderer derives one task per feature spec plus a separate hardening task.
+If `EXEC_TASKS` is present but a task spans multiple product specs, the renderer now fails instead of accepting an oversized queue.
 
 ## Enhancing This Skill
 

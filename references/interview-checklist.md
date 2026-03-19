@@ -2,8 +2,9 @@
 
 Use this checklist to decide whether the user's answers are complete enough to write the baseline docs.
 If the repo is already bootstrapped and the user wants the next feature wave, combine this with `references/expansion-mode.md` and ask only for the delta.
-Preferred interaction style: before the first substantive product question, first handle companion-skill guidance, then recommend `Plan` mode if the user wants selectable option lists, then tell the user to say `continue` when ready; after that, ask one question at a time, give suggested options when useful, and always allow a free-form answer.
-Before the first substantive product question, check whether relevant companion skills are installed and, if the user allows them, recommend installing missing ones before documentation starts, print the pinned install commands immediately, and handle them one skill at a time.
+Preferred interaction style: before the first substantive product question, first handle companion-skill guidance and resolve the install decision, then review the product/reference context, then in a separate prompt recommend `Plan` mode if the user wants selectable option lists, then in a separate prompt tell the user to say `continue` when ready; after that, ask one question at a time, give suggested options when useful, and always allow a free-form answer.
+Before the first substantive product question, check whether the pinned companion skill set is installed and, if the user allows them, summarize all missing companion skills, ask whether to auto-install them before product analysis and documentation starts, use the helper installer flow by default, and then handle accepted installs one skill at a time.
+Keep the printed manual commands aligned with the actual upstream repo paths.
 
 ## Identity
 

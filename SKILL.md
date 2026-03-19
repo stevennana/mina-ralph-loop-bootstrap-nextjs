@@ -27,6 +27,7 @@ Read these references before asking questions or writing files:
 - [references/nextjs-ts-preset.md](references/nextjs-ts-preset.md)
 - [references/expansion-mode.md](references/expansion-mode.md)
 - [references/feature-slicing.md](references/feature-slicing.md)
+- [references/doc-quality-loop.md](references/doc-quality-loop.md)
 
 Open templates and copied Ralph assets only when you need them:
 
@@ -64,14 +65,17 @@ Do not assume a feature, helper, route, or test is missing just because the firs
 
 ### 1b. Check companion skills before discovery
 
-Before founder discovery and before writing docs, check whether relevant companion skills are already installed under `~/.codex/skills`.
-Use `python3 <skill>/scripts/companion_skills.py status` as the source of truth for the pinned companion-skill set.
+Before product analysis, before reviewing the user’s reference implementation in depth, before founder discovery, and before writing docs, check whether the pinned companion skill set is already installed under `~/.codex/skills`.
+Use `python3 <skill>/scripts/companion_skills.py status` as the source of truth for that pinned companion-skill set.
 
 If the user allows companion skills:
 
-- recommend the relevant ones before documentation starts, not after specs are already written
-- if they are already installed, plan to use them during interview framing, docs generation, and architecture/spec shaping
-- if they are not installed, tell the user which ones are missing and print the relevant install command immediately
+- treat this as a startup prerequisite step before product analysis and interview work
+- if they are already installed, plan to use them during product analysis, interview framing, docs generation, and architecture/spec shaping
+- if they are not installed, tell the user all missing pinned companion skills up front rather than only the first one
+- ask whether the user wants those missing companion skills auto-installed before product analysis and interview start
+- default to the helper installer flow (`python3 <skill>/scripts/companion_skills.py install <skill>`) instead of leading with manual clone/copy commands
+- print manual clone/copy commands only as fallback guidance, or if the user explicitly asks for manual installation
 - do not require network-based catalog verification before printing those commands; use the pinned commands in this skill directly
 - do not block the bootstrap if the user declines or skips installation; continue with the built-in workflow
 - handle installs one skill at a time: propose the first missing relevant skill, install it if the user agrees, then move to the next one
@@ -87,7 +91,7 @@ Pinned manual install commands:
 
 ```bash
 git clone https://github.com/prisma/skills.git
-cp -r skills/prisma-cli ~/.codex/skills/prisma-cli
+cp -r prisma-cli ~/.codex/skills/prisma-cli
 ```
 
 ```bash
@@ -103,7 +107,7 @@ cp -r codex-skills/skills/frontend-responsive-ui ~/.codex/skills/
 
 ```bash
 git clone https://github.com/MKToronto/python-clean-architecture-codex.git
-cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture
+cp -r python-clean-architecture-codex/.agents/skills/clean-architecture ~/.codex/skills/clean-architecture
 ```
 
 Helper script usage:
@@ -119,17 +123,22 @@ python3 <skill>/scripts/companion_skills.py install prisma-cli
 Ask the user questions in stages, not all at once.
 Before the first substantive product question, follow this exact startup order:
 
-1. companion skill recommendation and missing-install-command guidance
-2. `Plan` mode recommendation, explicitly telling the user it enables selectable option lists
-3. a short handoff telling the user to say `continue` when ready to begin the interview
-4. only after that, ask the first substantive product question
+1. companion skill recommendation and installation decision
+2. if the user accepts installs, complete that skill-install flow first
+3. only after the install decision flow is resolved, begin product analysis/reference review
+4. then give the `Plan` mode recommendation
+5. then give a short handoff telling the user to say `continue` when ready to begin the interview
+6. only after that, ask the first substantive product question
 
 Do not combine the handoff with the first product question.
+Do not combine the companion-skill installation decision with the `continue` handoff in the same prompt.
 Do not repeat the startup guidance twice.
 At the startup handoff stage, do not ask for product intent yet; wait for the user to say `continue` or otherwise clearly indicate readiness.
+Do not deeply review the user’s desired product/reference before the companion-skill installation decision is resolved.
 
 At the startup handoff, tell the user that `Plan` mode enables selectable option lists for interview questions and recommend switching to `Plan` mode if they want that UI.
-If companion skills are relevant and missing, mention that before the first substantive product question, print the install commands inline, and let the user choose whether to install them first.
+If companion skills are missing, summarize all missing pinned companion skills first, ask whether the user wants them auto-installed before product analysis and the first interview question, and then handle accepted installs one by one.
+After the install decision is finished, send a separate prompt for the `Plan` mode recommendation and `continue` handoff.
 Do not replace the pinned install commands with guessed `skill-installer` or upstream-catalog commands unless the user explicitly asks to use the installer flow.
 Install and propose companion skills one at a time rather than dumping every missing skill at once.
 If the session remains in `Default` mode, continue with one-question-at-a-time plain-text questions, suggested options, and free-form fallback.
@@ -206,7 +215,11 @@ When the answers JSON includes structured feature data:
 
 - populate `FEATURE_SPECS` with one entry per distinct user-visible feature
 - populate `EXEC_TASKS` with a small sequenced task queue rather than only the baseline trio
+- keep each non-hardening task aligned to exactly one product spec whenever possible
 - let `scripts/render_docs.py` materialize those feature specs and executable task files alongside the baseline docs
+
+If `FEATURE_SPECS` is present and `EXEC_TASKS` is omitted, `scripts/render_docs.py` will derive one task per feature spec plus a separate hardening task.
+If `EXEC_TASKS` is provided but still collapses multiple product specs into broad tasks, the renderer should fail instead of silently accepting the queue.
 
 For continuation runs:
 
@@ -214,6 +227,36 @@ For continuation runs:
 - add or revise design docs when the new feature changes system shape or boundaries
 - update quality, reliability, and security docs if the new wave changes their posture
 - leave completed plan history intact
+
+### 3b. Improve supporting docs before writing exec-plans
+
+Before writing or revising exec-plans:
+
+- review the relevant product, frontend, architecture, and design docs together
+- enhance those docs if the feature description is still rough
+- use installed companion skills during design and architecture work when they are available and relevant
+- do not create exec-plan pages from weak supporting docs
+
+### 3c. Generate smaller exec-plan pages
+
+Create exec-plan pages only after the supporting docs are sufficiently detailed.
+
+Rules:
+
+- create one exec-plan page per small feature slice
+- avoid broad milestone-style scopes
+- keep each non-hardening plan focused on one feature front
+- include enough description that an implementer does not need to guess from other docs alone
+
+### 3d. Review each exec-plan page individually
+
+After generating the queue:
+
+- review each exec-plan page one by one
+- expand any page whose scope, exit criteria, or checks are still rough
+- use [references/doc-quality-loop.md](references/doc-quality-loop.md) as the quality gate
+- if quality is still insufficient, loop on the docs and plans until it is sufficient
+- if the blocker is missing user intent rather than weak writing, stop plan generation and return to the interview stage
 
 ### 4. Scaffold the app only after the docs exist
 
@@ -364,6 +407,8 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - When adding or changing tests, capture why the test exists and what regression it prevents.
 - External-resource features must be exercised by E2E before promotion.
 - If the user allows companion skills and they are installed, consider them before planning and implementation.
+- Before writing exec-plans, review and improve the related architecture, design, product, and frontend docs.
+- Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
 - Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.
 - Do not let the generator stop at one generic `core-flow.md` and one oversized first-slice task when the product clearly has several feature fronts.
 - Prefer parallel search and analysis over parallel validation.

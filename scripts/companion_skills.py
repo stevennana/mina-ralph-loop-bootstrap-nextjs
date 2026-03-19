@@ -39,13 +39,13 @@ SKILLS: dict[str, CompanionSkill] = {
         name="prisma-cli",
         repo_url="https://github.com/prisma/skills.git",
         repo_name="skills",
-        source_path="skills/prisma-cli",
+        source_path="prisma-cli",
         install_name="prisma-cli",
         area="db",
         purpose="database and schema work",
         pinned_commands=(
             "git clone https://github.com/prisma/skills.git",
-            "cp -r skills/prisma-cli ~/.codex/skills/prisma-cli",
+            "cp -r prisma-cli ~/.codex/skills/prisma-cli",
         ),
     ),
     "nextjs-app-router-patterns": CompanionSkill(
@@ -91,13 +91,13 @@ SKILLS: dict[str, CompanionSkill] = {
         name="clean-architecture",
         repo_url="https://github.com/MKToronto/python-clean-architecture-codex.git",
         repo_name="python-clean-architecture-codex",
-        source_path=".",
+        source_path=".agents/skills/clean-architecture",
         install_name="clean-architecture",
         area="architecture",
         purpose="architecture and boundary shaping",
         pinned_commands=(
             "git clone https://github.com/MKToronto/python-clean-architecture-codex.git",
-            "cp -r python-clean-architecture-codex ~/.codex/skills/clean-architecture",
+            "cp -r python-clean-architecture-codex/.agents/skills/clean-architecture ~/.codex/skills/clean-architecture",
         ),
     ),
 }

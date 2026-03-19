@@ -10,6 +10,8 @@ Each distinct feature area should normally get:
 
 - its own product spec under `docs/product-specs/`
 - one or more small executable tasks under `docs/exec-plans/active/`
+- in the initial queue, at least one executable task that maps cleanly to that spec
+- its exec-plan page written only after the related architecture/design/product docs are reviewed and tightened
 
 ## What Counts As A Distinct Feature
 
@@ -41,6 +43,8 @@ If the repo has multiple in-scope user-visible features:
 - the product-specs index should list them explicitly
 - the active queue should sequence them explicitly
 - the first executable task should not try to finish all of them at once
+- each non-hardening executable task should usually point at exactly one product spec
+- each exec-plan page should be reviewed individually before handoff
 
 ## External Resource Rule
 
@@ -58,3 +62,5 @@ Your slicing is probably too broad if any one task:
 - has exit criteria that read like a mini-roadmap
 - mixes account/auth work with content features and search/retrieval
 - mixes sharing, search, and AI into one “core value” task
+- references multiple product-spec docs in one executable contract
+- reads like a broad milestone instead of a task one agent can finish safely

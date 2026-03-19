@@ -24,22 +24,31 @@ When enhancing this skill, preserve these invariants:
 - The preferred interview style is one question at a time, with suggested options and a free-form fallback.
 - At interview start, the skill should recommend `Plan` mode when the user wants selectable option-list UX.
 - At interview start, the skill should handle companion-skill guidance first, then `Plan` mode guidance, then a `continue` handoff before asking the first product question.
+- The companion-skill install decision should happen before deep product/reference review.
+- The companion-skill installation decision and the `continue` handoff should happen in separate prompts.
 - The same skill should support later feature expansion by updating docs first and seeding the next exec-plan wave.
 - The supported stack stays intentionally narrow unless the skill contract is explicitly expanded.
 - `SKILL.md` remains the operating contract for another Codex instance.
 - The references define stop conditions and baseline requirements; code and templates must agree with them.
 - Generated repos must expose deterministic commands: `lint`, `typecheck`, `build`, `test:unit`, `test:e2e`, and `verify`.
 - Multiple user-visible features should not collapse into one generic product spec and one oversized first-slice task.
+- Each non-hardening executable task should usually map to exactly one product spec.
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
 - Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
 - Tests should explain the behavior they protect when that context would otherwise be lost across loops.
 - External-resource features should require E2E coverage before promotion.
 - Optional companion skills should be considered only when the user allows them and they are actually installed.
-- Relevant companion skills should be checked and recommended before founder discovery and before docs are written.
+- The pinned companion skill set should be checked and recommended before product analysis, founder discovery, and docs are written.
 - If relevant companion skills are missing, the startup guidance should print the install commands immediately instead of only offering to provide them.
 - The startup guidance should use the pinned manual install commands from this skill, not guessed catalog paths.
+- The pinned manual install commands and the helper installer paths must stay aligned with the actual upstream repo layout.
 - The startup guidance should be emitted once, not duplicated.
+- The startup guidance should summarize all relevant missing companion skills before asking about installation.
 - Companion-skill installs should be proposed and run one skill at a time before the interview starts.
+- The default startup install path should be the helper installer script, with manual commands as fallback only.
+- Supporting architecture/design/product docs should be strengthened before exec-plan pages are written.
+- Each exec-plan page should be reviewed individually for detail and scope quality.
+- If doc quality is still weak, loop on docs and plans; if the blocker is missing intent, go back to interview.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order
