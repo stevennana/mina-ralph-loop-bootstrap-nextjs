@@ -28,6 +28,8 @@ Read these references before asking questions or writing files:
 - [references/expansion-mode.md](references/expansion-mode.md)
 - [references/feature-slicing.md](references/feature-slicing.md)
 - [references/doc-quality-loop.md](references/doc-quality-loop.md)
+- [references/environment-blockers.md](references/environment-blockers.md)
+- [references/runtime-startup.md](references/runtime-startup.md)
 
 Open templates and copied Ralph assets only when you need them:
 
@@ -207,6 +209,7 @@ Then expand the rendered docs into project-specific content.
 
 - Replace any remaining generic placeholders.
 - Add project-specific design docs and product specs beyond the baseline templates whenever the product has more than one distinct user-visible feature.
+- If the user provides local or online references, analyze them into `docs/references/` and preserve the useful project-specific takeaways there.
 - Ensure `AGENTS.md` stays short and points into the docs tree.
 - Ensure active execution plans contain real `taskmeta` blocks and deterministic checks.
 - Ensure the docs clearly state that promotion is blocked when required test commands fail.
@@ -227,6 +230,7 @@ For continuation runs:
 - update the existing product specs before adding new active plans
 - add or revise design docs when the new feature changes system shape or boundaries
 - update quality, reliability, and security docs if the new wave changes their posture
+- keep `docs/references/` current when new user-provided references appear
 - leave completed plan history intact
 
 ### 3b. Improve supporting docs before writing exec-plans
@@ -258,6 +262,7 @@ After generating the queue:
 - use [references/doc-quality-loop.md](references/doc-quality-loop.md) as the quality gate
 - if quality is still insufficient, loop on the docs and plans until it is sufficient
 - if the blocker is missing user intent rather than weak writing, stop plan generation and return to the interview stage
+- if the blocker is environment-specific rather than a real product/doc defect, use [references/environment-blockers.md](references/environment-blockers.md) and define the RCA path before continuing
 
 ### 4. Scaffold the app only after the docs exist
 
@@ -272,6 +277,8 @@ For v1 of this skill, the scaffold is opinionated:
 - Playwright
 - `node --import tsx --test` for unit tests
 
+If the generated app depends on persistent runtime state such as SQLite/Prisma or local runtime preparation, follow [references/runtime-startup.md](references/runtime-startup.md).
+
 The generated scaffold must match the docs and expose these commands:
 
 - `npm run lint`
@@ -281,8 +288,14 @@ The generated scaffold must match the docs and expose these commands:
 - `npm run test:e2e`
 - `npm run verify`
 
+For stateful apps, also expose deterministic runtime-prep and startup-proof commands such as:
+
+- `npm run db:prepare`
+- `npm run start:smoke`
+
 Do not install the Ralph loop before these commands and their underlying file layout make sense.
 Do not describe a promotion-ready repo unless the test commands are wired into the actual promotion contract.
+Do not treat `build` as proof that the shipped runtime can start.
 
 During implementation, prefer the smallest targeted check that proves the changed unit or slice still works.
 For example:
@@ -290,6 +303,7 @@ For example:
 - run unit tests for the changed domain logic while iterating
 - run focused E2E coverage only for the affected journey while stabilizing that slice
 - keep `npm run verify` as the promotion gate for task completion
+- use the runtime startup smoke when the app’s real `start` path depends on prepared runtime state
 
 During the initial bootstrap run, stop at the foundation boundary.
 Do not implement the queued feature tasks during the bootstrap session.
@@ -410,6 +424,14 @@ If the environment allows package installation and test execution, run the proje
 If subagents are available, use them primarily for exploration, search, or summarization.
 Keep validation comparatively constrained: avoid fanning out broad concurrent test/build runs that create noisy backpressure or conflicting interpretations of failure.
 
+If the same environment-specific blocker appears three times for the current task:
+
+- stop retrying the same task as-is
+- record the repeated blocker in the task log and debt tracking
+- create a blocker-specific RCA/fix exec-plan
+- make that blocker plan the current plan
+- after it is resolved, return to the original task instead of abandoning the whole process
+
 ### 8. Consider companion skills when allowed
 
 If the user explicitly allows companion skills and they are installed, consider using them before planning or implementation when they fit the work:
@@ -436,6 +458,8 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - If the user allows companion skills and they are installed, consider them before planning and implementation.
 - Before writing exec-plans, review and improve the related architecture, design, product, and frontend docs.
 - Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
+- Repeated environment-specific blockers should branch into a dedicated RCA/fix exec-plan after three occurrences, then return to the original task.
+- Repos with persistent runtime state must prove a production-style startup path, not just build/test paths.
 - Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.
 - Do not let the generator stop at one generic `core-flow.md` and one oversized first-slice task when the product clearly has several feature fronts.
 - The bootstrap session may complete only the foundation task; remaining feature tasks must be left for the Ralph loop or a later explicit implementation session.

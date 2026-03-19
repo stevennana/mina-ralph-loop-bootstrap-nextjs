@@ -49,8 +49,11 @@ When enhancing this skill, preserve these invariants:
 - Supporting architecture/design/product docs should be strengthened before exec-plan pages are written.
 - Each exec-plan page should be reviewed individually for detail and scope quality.
 - If doc quality is still weak, loop on docs and plans; if the blocker is missing intent, go back to interview.
+- If the same environment-specific blocker repeats three times, create a dedicated RCA/fix exec-plan and then return to the original task.
+- User-provided references should be analyzed into `docs/references/` and preserved as durable project knowledge.
 - The bootstrap session must stop after foundation completion and must not pre-execute queued feature tasks.
 - Completed tasks belong in `docs/exec-plans/completed/`, not `active/`.
+- Stateful generated repos should prove their production-style startup path explicitly, not just pass build/test checks.
 - The copied Ralph assets are a starting point that must align with the generated repo shape.
 
 ## Read Order

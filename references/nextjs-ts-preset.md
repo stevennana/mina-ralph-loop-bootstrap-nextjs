@@ -25,10 +25,20 @@ The generated `package.json` should expose:
 - `test`
 - `verify`
 
+If the app has persistent runtime state such as SQLite/Prisma, migrations, or local storage preparation, it should also expose:
+
+- `db:prepare`
+- `start:smoke`
+
 Recommended shapes:
 
 - `test`: unit + e2e
 - `verify`: lint + typecheck + build + test
+
+Recommended startup shape for stateful apps:
+
+- `db:prepare`: prepare schema/runtime state for local and production-style startup
+- `start:smoke`: prepare runtime state if needed, start the app in production-style mode, probe a minimal route, then stop
 
 For this skill, `verify` is not advisory. Generated task contracts should treat the required test-bearing commands as hard promotion gates.
 During day-to-day implementation loops, prefer narrower checks first and reserve `verify` for completion gating.
@@ -42,6 +52,7 @@ If a feature depends on an outside resource such as AI chat or another remote in
 - one Playwright smoke test
 - deterministic commands wired before the Ralph loop is considered ready
 - promotion logic aligned so failing required test commands block advancement
+- if the app uses persistent runtime state, a production-style startup smoke proves `npm run start` is viable
 
 ## Ralph alignment
 
@@ -61,3 +72,4 @@ Keep these defaults aligned unless there is a strong reason not to:
 - Do not leave the repo in a state where the evaluator can promote tasks despite failing required test commands.
 - Encourage focused unit and slice-level checks during implementation so the loop can turn quickly without weakening the final promotion gate.
 - Ensure external-resource features are represented in Playwright or equivalent E2E coverage before the related task is promotable.
+- If the app depends on DB or runtime preparation, do not leave `npm run start` unproven; wire an explicit startup smoke path into the repo contract.

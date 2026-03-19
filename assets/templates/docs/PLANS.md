@@ -52,6 +52,7 @@ Read:
 - Fast local checks are for iteration speed; the required commands remain the promotion contract.
 - If a feature depends on an outside resource, include E2E coverage for that feature before promotion.
 - If a plan page is still rough or broad, improve the supporting docs and split the plan before promotion work starts.
+- If the same environment-specific blocker repeats three times, branch into a dedicated RCA/fix exec-plan and then return to the original task.
 
 ## When The Current Queue Is Done
 - Do not treat an empty active queue as the end of the product.

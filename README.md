@@ -39,6 +39,8 @@ It also adopts a few practical Ralph-style operating rules:
 - prefer targeted checks while iterating, then use `verify` as the promotion gate
 - document why important tests exist so future loops do not weaken them accidentally
 - if a feature depends on an outside resource such as AI chat, it should be covered by an E2E scenario before promotion
+- if the same environment-specific blocker repeats three times, branch into an RCA/fix exec-plan instead of stalling the original task forever
+- if the app has persistent runtime state, prove the production-style startup path explicitly instead of assuming `build` is enough
 
 ## Repository Layout
 
@@ -46,6 +48,9 @@ It also adopts a few practical Ralph-style operating rules:
 - `references/`: harness model, doc baseline, interview checklist, and Next.js preset
 - `references/feature-slicing.md`: rules for turning product features into multiple specs and small executable tasks
 - `references/doc-quality-loop.md`: quality gate for refining docs and exec-plan pages until they are decision-complete
+- `references/environment-blockers.md`: exceptional path for repeated environment-specific verification blockers
+- `references/runtime-startup.md`: contract for proving production-style startup in stateful apps
+- `assets/templates/docs/references/README.md`: rule for turning user-provided references into durable repo-local reference notes
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
 - `scripts/companion_skills.py`: checks, prints commands for, and installs the pinned companion skills
@@ -67,6 +72,7 @@ The skill is meant to run in this order:
 3. map the distinct user-visible features that need their own specs and task slices
 4. render the baseline docs tree
 5. expand those docs into project-specific material
+   User-provided local or online references should be analyzed into `docs/references/` and kept for future iterations.
 6. improve the supporting architecture/design/product docs until they are specific enough
 7. generate smaller exec-plan pages for individual features
 8. review each exec-plan page one by one and loop on quality if needed
@@ -95,10 +101,21 @@ The bootstrap session should only guarantee the harness environment:
 - minimal scaffold in place
 - Ralph installed and aligned
 - deterministic commands working
+- production-style startup proven when the app depends on runtime state
 - bootstrap foundation task archived into `docs/exec-plans/completed/`
 - remaining feature tasks left in `docs/exec-plans/active/` for the Ralph loop
 
 The skill should not pre-execute the queued feature tasks during the initial bootstrap run.
+
+## Repeated Blockers
+
+If a similar environment-specific verification blocker happens three times on the same task:
+
+1. stop retrying that task unchanged
+2. write down the RCA evidence
+3. create a small blocker-specific exec-plan
+4. resolve that blocker plan
+5. return to the original task afterward
 
 ## Continue After The Initial Plans Are Done
 

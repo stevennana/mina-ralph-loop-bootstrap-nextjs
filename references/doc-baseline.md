@@ -62,6 +62,8 @@ Examples:
 - test harness references
 - provider request/response shapes
 
+If the user provides local or online references, analyze them into `docs/references/` and keep the useful project-specific information in-repo for future implementation and later feature waves.
+
 ## Stop Condition
 
 Do not move on to scaffold creation until:

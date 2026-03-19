@@ -60,3 +60,12 @@ If the quality problem comes from missing product intent rather than weak writin
 - stop generating more guidance
 - go back to the interview stage
 - ask only the missing questions needed to remove the ambiguity
+
+## When To Branch Into RCA
+
+If the blocker is neither doc quality nor missing intent, but a repeated environment-specific failure:
+
+- stop the repeated attempt loop
+- create a separate RCA/fix exec-plan for that blocker
+- resolve that blocker first
+- then return to the original task

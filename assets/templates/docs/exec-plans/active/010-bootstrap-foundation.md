@@ -15,7 +15,8 @@
     "docs/PLANS.md"
   ],
   "required_commands": [
-    "npm run verify"
+    "npm run verify",
+    "npm run start:smoke"
   ],
   "required_files": [
     "package.json",
@@ -53,16 +54,19 @@ Bootstrap the repository so it has a coherent docs tree, a minimal Next.js scaff
 2. The Next.js scaffold exists.
 3. The Ralph scripts exist.
 4. `npm run verify` passes.
+5. `npm run start:smoke` passes.
 
 ## Required checks
 
 - `npm run verify`
+- `npm run start:smoke`
 - targeted unit or smoke checks for the files being introduced, while iterating
 
 ## Evaluator notes
 
 Promote only when the docs, scaffold, and Ralph scripts agree on the same repo contract.
 Do not promote if `npm run verify` fails, even if the bootstrap looks complete by inspection.
+Do not promote if the production-style startup smoke fails, even when `build` passes.
 
 ## Progress log
 
