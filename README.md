@@ -161,6 +161,14 @@ The skill will ask staged founder questions covering:
 The stop condition is not just "enough detail to scaffold." The interview must make the test strategy explicit enough that the generated plans can say which checks are required and which failures block promotion.
 That includes calling out external-resource features that must be covered by E2E before promotion.
 
+Preferred interaction style:
+
+- the skill should ask one question at a time
+- when appropriate, it should offer a few reasonable options and mark a recommended one
+- the user should always be able to ignore the options and answer in free form
+
+In the current Codex CLI flow, these are plain-text options, not guaranteed clickable choice widgets. The user does not need to prepare answers in another editor unless they prefer to draft them there.
+
 ## Recommended Companion Skills
 
 If the customer allows them and they are relevant to the work, consider installing and using these companion skills before planning or implementation.

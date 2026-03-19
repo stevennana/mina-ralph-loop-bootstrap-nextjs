@@ -63,6 +63,17 @@ Do not assume a feature, helper, route, or test is missing just because the firs
 ### 2. Interview until the docs are decision-complete
 
 Ask the user questions in stages, not all at once.
+Prefer one question at a time unless the user explicitly asks for batching.
+
+For each interview question:
+
+- offer a small set of reasonable options when the space is predictable
+- mark one option as recommended when there is a defensible default
+- always allow the user to answer in free form instead of choosing an option
+- keep the question narrow enough that the user can answer without opening another editor unless they prefer to
+
+In this Codex CLI flow, treat those options as plain-text suggestions, not as guaranteed clickable UI controls.
+Do not require the user to prepare answers in a separate editor unless they want to.
 
 For continuation runs, do a delta interview rather than repeating the full bootstrap interview.
 Ask only what is needed to define the next feature tranche and its tests without guessing.

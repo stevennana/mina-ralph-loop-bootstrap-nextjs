@@ -21,6 +21,7 @@ When enhancing this skill, preserve these invariants:
 
 - Docs come before scaffold generation.
 - The interview must produce a concrete test strategy before docs are considered complete.
+- The preferred interview style is one question at a time, with suggested options and a free-form fallback.
 - The same skill should support later feature expansion by updating docs first and seeding the next exec-plan wave.
 - The supported stack stays intentionally narrow unless the skill contract is explicitly expanded.
 - `SKILL.md` remains the operating contract for another Codex instance.
