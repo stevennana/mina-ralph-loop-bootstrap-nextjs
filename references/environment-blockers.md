@@ -16,6 +16,20 @@ This is an environment blocker when:
 - the same deterministic failure keeps repeating
 - the failure depends on how the command is launched, wrapped, sandboxed, or hosted
 - the remaining gap is not ordinary feature work
+- the worker phase stops making forward progress even though the loop still thinks it is running
+
+## Worker Stall Detection
+
+The harness should not try to prove Codex internal health directly.
+
+Instead, generated Ralph loops should treat changes to `worker.jsonl` as the worker heartbeat.
+
+If the worker phase stays active but `worker.jsonl` stops changing for longer than the configured stall timeout:
+
+- classify the cycle as stalled
+- stop the worker
+- preserve a stall artifact with timing evidence
+- stop the unattended loop instead of retrying blindly
 
 ## Exceptional Path
 

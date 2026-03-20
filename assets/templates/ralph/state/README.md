@@ -8,3 +8,4 @@ These files are mutable runtime artifacts for the Ralph loop.
 - `task-history.md`: promotion history
 - `run-log.md`: append-only operational log
 - `backlog.md`: rendered queue snapshot
+- `current-cycle.json`: current phase/status, including `stalled` when the worker heartbeat goes silent

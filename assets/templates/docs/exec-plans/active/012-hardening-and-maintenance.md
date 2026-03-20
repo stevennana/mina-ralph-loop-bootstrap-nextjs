@@ -39,6 +39,7 @@ Close the gap between the implemented slice and the repository's reliability, se
 - reconcile docs and implementation drift
 - keep the deterministic checks healthy
 - tighten operator guidance for the Ralph loop
+- ensure the loop can detect and surface stalled worker cycles instead of waiting forever
 - keep operator-visible server logging aligned with the actual startup path
 - record remaining debt explicitly
 
@@ -55,7 +56,8 @@ Close the gap between the implemented slice and the repository's reliability, se
 4. Reliability/security docs reflect the current implementation.
 5. Operator-visible startup logging and log-level guidance match the actual server behavior.
 6. Remaining debt is explicit.
-7. If the only remaining blocker is environment-specific, that blocker is explicitly documented and escalated instead of causing repeated blind retries.
+7. Stalled worker cycles are surfaced clearly in loop state and run-log health marks.
+8. If the only remaining blocker is environment-specific, that blocker is explicitly documented and escalated instead of causing repeated blind retries.
 
 ## Required checks
 

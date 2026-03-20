@@ -396,6 +396,18 @@ ls logs/
 tail -f logs/next-server-*.log
 ```
 
+Generated Ralph loops now support a compact cycle-health line inside `state/run-log.md`:
+
+- `o` = cycle completed and task promoted
+- `x` = cycle completed but stayed not-done or failed
+- `!` = worker stalled and the loop stopped for RCA
+
+Example:
+
+```text
+- health: oo!xooo
+```
+
 Important state files in generated repos:
 
 - `state/current-task.txt`: current active task id

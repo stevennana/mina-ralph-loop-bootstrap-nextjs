@@ -51,6 +51,7 @@ When enhancing this skill, preserve these invariants:
 - Each exec-plan page should be reviewed individually for detail and scope quality.
 - If doc quality is still weak, loop on docs and plans; if the blocker is missing intent, go back to interview.
 - If the same environment-specific blocker repeats three times, create a dedicated RCA/fix exec-plan and then return to the original task.
+- Generated Ralph loops should monitor `worker.jsonl` progress as the worker heartbeat, stop stalled cycles safely, and surface compact `o`/`x`/`!` health marks in `state/run-log.md`.
 - User-provided references should be analyzed into `docs/references/` and preserved as durable project knowledge.
 - The bootstrap session must stop after foundation completion and must not pre-execute queued feature tasks.
 - Expansion sessions must stop after the next-wave docs and exec-plans are refreshed; implementation should start only in a later explicit task-focused follow-up.

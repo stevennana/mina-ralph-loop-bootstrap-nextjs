@@ -455,6 +455,9 @@ If the same environment-specific blocker appears three times for the current tas
 - make that blocker plan the current plan
 - after it is resolved, return to the original task instead of abandoning the whole process
 
+Generated Ralph loops should also treat `worker.jsonl` updates as the worker heartbeat.
+If the worker phase goes silent past the configured stall timeout, mark the cycle as stalled, stop the unattended loop, preserve evidence, and hand off to the blocker/RCA path instead of waiting forever on `codex exec`.
+
 ### 8. Consider companion skills when allowed
 
 If the user explicitly allows companion skills and they are installed, consider using them before planning or implementation when they fit the work:
@@ -482,6 +485,7 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - Before writing exec-plans, review and improve the related architecture, design, product, and frontend docs.
 - Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
 - Repeated environment-specific blockers should branch into a dedicated RCA/fix exec-plan after three occurrences, then return to the original task.
+- Generated Ralph loops should detect stalled workers from missing `worker.jsonl` progress, not from guessed Codex internal health, and surface compact `o`/`x`/`!` cycle marks in `state/run-log.md`.
 - Repos with persistent runtime state must prove a production-style startup path, not just build/test paths.
 - Generated repos should expose an operator-visible `start:logged` path and server log levels so humans can inspect real server flow without relying only on Ralph artifacts.
 - Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.

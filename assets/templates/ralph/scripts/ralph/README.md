@@ -66,6 +66,7 @@ local work that is bound to that port.
 - generated repos should document a server log level environment variable such as `LOG_LEVEL`, with at least `trace`, `debug`, `info`, `warn`, and `error`
 - server wrappers default `MINAKEEP_DEBUG_SERVER=1`, so AI-tagging failures include debug details in the Next server logs without logging note bodies or tokens
 - inspect artifact files when the compact log points to a failed phase
+- `state/run-log.md` also appends a compact health line after each cycle: `o` for promoted success, `x` for completed non-promotion/failure, and `!` for stalled worker recovery
 
 ## Recommended usage
 
@@ -90,6 +91,7 @@ Default sleep is `30` seconds when `RALPH_LOOP_SLEEP_SECONDS` is not set.
 tail -f state/run-log.md
 cat state/last-result.txt
 cat state/evaluation.json
+cat state/current-cycle.json
 ls logs/
 tail -f logs/next-server-*.log
 ```
@@ -100,6 +102,7 @@ tail -f logs/next-server-*.log
 - Prefer deterministic gates plus evaluator review over “try harder” loops.
 - Do not mix multiple feature fronts into one task.
 - `run-once.sh` always rewrites `state/current-cycle.json`, `state/evaluation.json`, `state/backlog.md`, and `state/last-result.txt`; treat those as loop-owned state.
+- if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for RCA
 - Required commands come from each task doc’s `taskmeta.required_commands`; `evaluate-task.mjs` runs exactly those commands plus required-file checks.
 - Port cleanup is executed automatically only by the evaluator path for `npm run verify`, `npm run test:e2e`, or other Playwright-bearing commands. Manual local runs do not get that cleanup for free.
 - `ensure-e2e-port-free.sh` is intentionally aggressive and may terminate unrelated processes bound to `127.0.0.1:3100`.
