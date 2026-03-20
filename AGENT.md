@@ -34,6 +34,7 @@ When enhancing this skill, preserve these invariants:
 - Generated repos must expose deterministic commands: `lint`, `typecheck`, `build`, `test:unit`, `test:e2e`, and `verify`.
 - Multiple user-visible features should not collapse into one generic product spec and one oversized first-slice task.
 - Each non-hardening executable task should usually map to exactly one product spec.
+- A single product spec may legitimately map to multiple non-hardening exec-plans when that keeps the slices narrow.
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
 - Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
 - Tests should explain the behavior they protect when that context would otherwise be lost across loops.
@@ -47,6 +48,8 @@ When enhancing this skill, preserve these invariants:
 - The startup guidance should summarize all relevant missing companion skills before asking about installation.
 - Companion-skill installs should be proposed and run one skill at a time before the interview starts.
 - The default startup install path should be the helper installer script, with manual commands as fallback only.
+- When `FEATURE_SPECS` is present and `EXEC_TASKS` is omitted, the derived queue should follow explicit slice-size and backlog-depth controls instead of stopping at one task per feature spec.
+- When the founder does not specify queue sizing controls, the defaults should be `SLICE_SIZE=balanced` and `BACKLOG_DEPTH=10-15 tasks`.
 - Supporting architecture/design/product docs should be strengthened before exec-plan pages are written.
 - Each exec-plan page should be reviewed individually for detail and scope quality.
 - If doc quality is still weak, loop on docs and plans; if the blocker is missing intent, go back to interview.

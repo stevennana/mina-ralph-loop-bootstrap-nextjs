@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -91,11 +92,501 @@ def _runtime_startup_required(feature_specs: list[dict[str, object]], answers_js
     return False
 
 
+def _normalize_slice_size(value: object) -> str:
+    normalized = str(value or "").strip().lower().replace("_", "-")
+    if normalized in {"micro", "smallest", "smallest-safe", "tiny", "fine-grained", "fine"}:
+        return "micro"
+    if normalized in {"coarse", "broad", "large", "fewer"}:
+        return "coarse"
+    return "balanced"
+
+
+def _task_capacity_per_day(slice_size: str) -> int:
+    if slice_size == "micro":
+        return 6
+    if slice_size == "coarse":
+        return 3
+    return 5
+
+
+def _parse_positive_int(value: object) -> int | None:
+    if isinstance(value, int):
+        return value if value > 0 else None
+    if isinstance(value, str):
+        stripped = value.strip()
+        if stripped.isdigit():
+            parsed = int(stripped)
+            return parsed if parsed > 0 else None
+    return None
+
+
+def _resolve_backlog_target(
+    answers_json: dict[str, object],
+    *,
+    slice_size: str,
+    feature_count: int,
+) -> dict[str, int | str]:
+    explicit_count = _parse_positive_int(answers_json.get("TARGET_EXEC_TASK_COUNT")) or _parse_positive_int(
+        answers_json.get("TASK_COUNT_TARGET")
+    )
+    if explicit_count is not None:
+        return {
+            "label": f"{explicit_count} tasks",
+            "minimum_total_tasks": explicit_count,
+            "preferred_total_tasks": explicit_count,
+            "maximum_total_tasks": explicit_count,
+        }
+
+    backlog_value = answers_json.get("BACKLOG_DEPTH")
+    backlog_text = str(backlog_value or "").strip().lower()
+    if not backlog_text:
+        backlog_text = "10-15 tasks"
+
+    numbers = [int(match) for match in re.findall(r"\d+", backlog_text)]
+    if "next wave" in backlog_text or "next tranche" in backlog_text or backlog_text in {"wave", "short"}:
+        minimum_total = max(3, min(5, feature_count + 1))
+        preferred_total = max(4, minimum_total)
+        maximum_total = max(preferred_total, 5)
+        return {
+            "label": "next wave",
+            "minimum_total_tasks": minimum_total,
+            "preferred_total_tasks": preferred_total,
+            "maximum_total_tasks": maximum_total,
+        }
+
+    if "day" in backlog_text:
+        if len(numbers) >= 2:
+            minimum_days, maximum_days = numbers[0], numbers[1]
+        elif numbers:
+            minimum_days = maximum_days = numbers[0]
+        else:
+            minimum_days = maximum_days = 2
+        per_day = _task_capacity_per_day(slice_size)
+        minimum_total = max(1, minimum_days * per_day)
+        maximum_total = max(minimum_total, maximum_days * per_day)
+        preferred_total = max(minimum_total, (minimum_total + maximum_total) // 2)
+        return {
+            "label": backlog_text,
+            "minimum_total_tasks": minimum_total,
+            "preferred_total_tasks": preferred_total,
+            "maximum_total_tasks": maximum_total,
+        }
+
+    if "hour" in backlog_text:
+        if len(numbers) >= 2:
+            minimum_hours, maximum_hours = numbers[0], numbers[1]
+        elif numbers:
+            minimum_hours = maximum_hours = numbers[0]
+        else:
+            minimum_hours = maximum_hours = 24
+        per_day = _task_capacity_per_day(slice_size)
+        minimum_total = max(1, round((minimum_hours / 8) * per_day))
+        maximum_total = max(minimum_total, round((maximum_hours / 8) * per_day))
+        preferred_total = max(minimum_total, (minimum_total + maximum_total) // 2)
+        return {
+            "label": backlog_text,
+            "minimum_total_tasks": minimum_total,
+            "preferred_total_tasks": preferred_total,
+            "maximum_total_tasks": maximum_total,
+        }
+
+    if "task" in backlog_text and len(numbers) >= 2:
+        minimum_total, maximum_total = numbers[0], numbers[1]
+        preferred_total = max(minimum_total, (minimum_total + maximum_total) // 2)
+        return {
+            "label": backlog_text,
+            "minimum_total_tasks": minimum_total,
+            "preferred_total_tasks": preferred_total,
+            "maximum_total_tasks": maximum_total,
+        }
+
+    if "task" in backlog_text and len(numbers) == 1:
+        total = numbers[0]
+        return {
+            "label": backlog_text,
+            "minimum_total_tasks": total,
+            "preferred_total_tasks": total,
+            "maximum_total_tasks": total,
+        }
+
+    return {
+        "label": "10-15 tasks",
+        "minimum_total_tasks": 10,
+        "preferred_total_tasks": 12,
+        "maximum_total_tasks": 15,
+    }
+
+
+def _spec_text(spec: dict[str, object]) -> str:
+    parts = [
+        str(spec.get("title") or ""),
+        str(spec.get("goal") or ""),
+        str(spec.get("trigger") or ""),
+        str(spec.get("scope") or ""),
+        *_as_list(spec.get("behavior_bullets")),
+        *_as_list(spec.get("validation_bullets")),
+        *_as_list(spec.get("required_commands")),
+        *_as_list(spec.get("required_checks")),
+        *_as_list(spec.get("required_files")),
+    ]
+    return " ".join(parts).lower()
+
+
+def _build_spec_profile(spec: dict[str, object]) -> dict[str, object]:
+    behavior = _as_list(spec.get("behavior_bullets"))
+    validation = _as_list(spec.get("validation_bullets"))
+    required_commands = _as_list(spec.get("required_commands"))
+    required_checks = _as_list(spec.get("required_checks"))
+    required_files = _as_list(spec.get("required_files"))
+    text = _spec_text(spec)
+    external_keywords = (
+        "oauth",
+        "auth",
+        "invite",
+        "email",
+        "ai",
+        "upload",
+        "media",
+        "search",
+        "retrieval",
+        "third-party",
+        "third party",
+        "integration",
+        "provider",
+        "billing",
+        "payment",
+        "webhook",
+        "sync",
+    )
+    external_dependency = any(keyword in text for keyword in external_keywords)
+    requires_startup_smoke = any(command == "npm run start:smoke" for command in (required_commands + required_checks))
+    needs_foundation = external_dependency or requires_startup_smoke or bool(required_files) or len(behavior) >= 4
+    needs_coverage_followup = (
+        external_dependency
+        or requires_startup_smoke
+        or len(validation) >= 2
+        or any("test:e2e" in command or "playwright" in command for command in (required_commands + required_checks))
+    )
+    followup_capacity = 0
+    if len(behavior) >= 2:
+        followup_capacity += 1
+    if len(behavior) >= 4 or len(validation) >= 3:
+        followup_capacity += 1
+    if len(behavior) >= 6 or len(validation) >= 5:
+        followup_capacity += 1
+
+    return {
+        "behavior": behavior,
+        "validation": validation,
+        "required_commands": required_commands,
+        "required_checks": required_checks,
+        "required_files": required_files,
+        "external_dependency": external_dependency,
+        "requires_startup_smoke": requires_startup_smoke,
+        "needs_foundation": needs_foundation,
+        "needs_coverage_followup": needs_coverage_followup,
+        "followup_capacity": followup_capacity,
+        "complexity_score": len(behavior) * 2
+        + len(validation)
+        + (2 if external_dependency else 0)
+        + (1 if requires_startup_smoke else 0)
+        + (1 if required_files else 0),
+    }
+
+
+def _max_tasks_for_profile(profile: dict[str, object], slice_size: str) -> int:
+    max_count = 1 + int(bool(profile["needs_foundation"])) + int(bool(profile["needs_coverage_followup"])) + int(
+        profile["followup_capacity"]
+    )
+    if slice_size == "coarse":
+        return min(max_count, 3)
+    if slice_size == "micro":
+        return min(max_count, 6)
+    return min(max_count, 5)
+
+
+def _initial_task_count_for_profile(profile: dict[str, object], slice_size: str) -> int:
+    max_count = _max_tasks_for_profile(profile, slice_size)
+    if slice_size == "coarse":
+        count = 1 + int(profile["complexity_score"] >= 8)
+    elif slice_size == "micro":
+        count = 3 + int(profile["complexity_score"] >= 9) + int(profile["complexity_score"] >= 13)
+    else:
+        count = 2 + int(profile["complexity_score"] >= 9)
+    return max(1, min(count, max_count))
+
+
+def _distribute_task_counts(
+    profiles: list[dict[str, object]],
+    *,
+    slice_size: str,
+    preferred_total_tasks: int,
+) -> list[int]:
+    counts = [_initial_task_count_for_profile(profile, slice_size) for profile in profiles]
+    total_non_hardening = sum(counts)
+    if total_non_hardening >= preferred_total_tasks:
+        return counts
+
+    while total_non_hardening < preferred_total_tasks:
+        candidate_index = None
+        candidate_rank: tuple[int, int, int] | None = None
+        for index, profile in enumerate(profiles):
+            max_count = _max_tasks_for_profile(profile, slice_size)
+            remaining_capacity = max_count - counts[index]
+            if remaining_capacity <= 0:
+                continue
+            rank = (
+                int(profile["complexity_score"]),
+                remaining_capacity,
+                -counts[index],
+            )
+            if candidate_rank is None or rank > candidate_rank:
+                candidate_rank = rank
+                candidate_index = index
+        if candidate_index is None:
+            break
+        counts[candidate_index] += 1
+        total_non_hardening += 1
+
+    return counts
+
+
+def _chunk_items(items: list[str], chunk_count: int) -> list[list[str]]:
+    if chunk_count <= 0:
+        return []
+    if not items:
+        return [[] for _ in range(chunk_count)]
+
+    chunks: list[list[str]] = []
+    start = 0
+    total = len(items)
+    for index in range(chunk_count):
+        remaining_items = total - start
+        remaining_chunks = chunk_count - index
+        size = max(1, remaining_items // remaining_chunks)
+        if remaining_items % remaining_chunks:
+            size += 1
+        end = min(total, start + size)
+        chunks.append(items[start:end])
+        start = end
+    while len(chunks) < chunk_count:
+        chunks.append([])
+    return chunks
+
+
+def _phase_slug(kind: str, followup_index: int | None = None) -> str:
+    if kind == "foundation":
+        return "foundation"
+    if kind == "primary":
+        return "first-vertical-slice"
+    if kind == "coverage":
+        return "acceptance-and-edge-coverage"
+    if followup_index is None:
+        return "follow-up-slice"
+    return f"follow-up-slice-{followup_index}"
+
+
+def _phase_title(spec_title: str, *, kind: str, followup_index: int | None = None, single_task: bool) -> str:
+    if single_task and kind == "primary":
+        return spec_title
+    if kind == "foundation":
+        label = "Foundation"
+    elif kind == "primary":
+        label = "First Vertical Slice"
+    elif kind == "coverage":
+        label = "Acceptance And Edge Coverage"
+    else:
+        label = f"Follow-Up Slice {followup_index or 1}"
+    return f"{spec_title}: {label}"
+
+
+def _default_scope_bullet(spec_title: str, *, kind: str, followup_index: int | None = None) -> str:
+    feature_name = spec_title.lower()
+    if kind == "foundation":
+        return f"establish the minimum implementation and repo wiring needed for the first {feature_name} slice"
+    if kind == "coverage":
+        return f"close the remaining acceptance and edge-case gaps for {feature_name}"
+    if kind == "primary":
+        return f"ship the first promotion-ready {feature_name} path"
+    return f"ship the next scoped {feature_name} increment without broadening into unrelated feature work"
+
+
+def _default_exit_criteria(spec_title: str, *, kind: str) -> list[str]:
+    feature_name = spec_title.lower()
+    if kind == "foundation":
+        return [
+            f"The minimum enabling work for the first {feature_name} slice is in place.",
+            "The task's required checks pass.",
+        ]
+    if kind == "coverage":
+        return [
+            f"The remaining acceptance-relevant gaps for {feature_name} are closed or made explicit.",
+            "The task's required checks pass.",
+        ]
+    return [
+        f"The scoped {feature_name} behavior works in substance.",
+        "The task's required checks pass.",
+    ]
+
+
+def _derive_tasks_for_spec(
+    filename: str,
+    spec: dict[str, object],
+    profile: dict[str, object],
+    *,
+    count: int,
+    project_name: str,
+) -> list[dict[str, object]]:
+    title = str(spec.get("title") or "Feature slice")
+    slug = str(spec.get("slug") or _slugify(title))
+    behavior = list(profile["behavior"])
+    validation = list(profile["validation"])
+    prompt_docs = [
+        "AGENTS.md",
+        "ARCHITECTURE.md",
+        "docs/FRONTEND.md",
+        _product_spec_doc(filename),
+    ]
+    required_commands = list(profile["required_commands"]) or ["npm run verify"]
+    required_checks = list(profile["required_checks"]) or list(required_commands)
+    required_files = list(profile["required_files"])
+    out_of_scope = _as_list(spec.get("out_of_scope_bullets")) or [
+        "unrelated feature fronts",
+        "future product expansion beyond this feature",
+    ]
+    human_review_triggers = _as_list(spec.get("human_review_triggers")) or [
+        "The task broadens into unrelated feature work.",
+        "The deterministic checks do not actually prove the claimed behavior.",
+    ]
+    base_goal = str(spec.get("goal") or f"Implement {title} for {project_name}.")
+
+    single_task = count == 1
+    include_foundation = count >= 3 and bool(profile["needs_foundation"])
+    include_coverage = count >= 2 and bool(profile["needs_coverage_followup"])
+
+    phase_plan: list[tuple[str, int | None]] = []
+    if include_foundation:
+        phase_plan.append(("foundation", None))
+    phase_plan.append(("primary", None))
+    remaining_slots = count - len(phase_plan)
+    if include_coverage:
+        remaining_slots -= 1
+    followup_slots = max(0, remaining_slots)
+    for followup_index in range(1, followup_slots + 1):
+        phase_plan.append(("followup", followup_index))
+    if include_coverage:
+        phase_plan.append(("coverage", None))
+
+    behavior_phase_indexes = [index for index, (kind, _) in enumerate(phase_plan) if kind in {"primary", "followup"}]
+    behavior_chunks = _chunk_items(behavior, len(behavior_phase_indexes))
+    validation_phase_indexes = [index for index, (kind, _) in enumerate(phase_plan) if kind != "foundation"]
+    validation_chunks = _chunk_items(validation, len(validation_phase_indexes))
+
+    tasks: list[dict[str, object]] = []
+    behavior_chunk_index = 0
+    validation_chunk_index = 0
+    for phase_index, (kind, followup_index) in enumerate(phase_plan):
+        title_for_phase = _phase_title(title, kind=kind, followup_index=followup_index, single_task=single_task)
+        phase_slug = slug if single_task and kind == "primary" else f"{slug}-{_phase_slug(kind, followup_index)}"
+
+        if kind in {"primary", "followup"}:
+            scope_bullets = behavior_chunks[behavior_chunk_index]
+            behavior_chunk_index += 1
+        elif kind == "foundation":
+            scope_bullets = [
+                _default_scope_bullet(title, kind="foundation"),
+                f"prepare the repo contracts, docs, and checks needed to deliver the first {title.lower()} path safely",
+            ]
+        else:
+            scope_bullets = [
+                _default_scope_bullet(title, kind="coverage"),
+                f"make the remaining {title.lower()} acceptance criteria and edge handling explicit in implementation and docs",
+            ]
+
+        if not scope_bullets:
+            scope_bullets = [_default_scope_bullet(title, kind=kind, followup_index=followup_index)]
+
+        if kind != "foundation":
+            exit_criteria = validation_chunks[validation_chunk_index]
+            validation_chunk_index += 1
+        else:
+            exit_criteria = []
+
+        if not exit_criteria:
+            exit_criteria = _default_exit_criteria(title, kind=kind)
+        elif "The task's required checks pass." not in exit_criteria:
+            exit_criteria = [*exit_criteria, "The task's required checks pass."]
+
+        implementation_notes = _as_list(spec.get("implementation_notes_bullets"))
+        if kind == "coverage" and profile["external_dependency"]:
+            implementation_notes = [
+                *implementation_notes,
+                f"Require the relevant end-to-end scenario for {title.lower()} before promotion.",
+            ]
+
+        if kind == "foundation":
+            objective = f"Prepare the minimum foundation needed to deliver the first {title.lower()} slice without broadening into the full feature."
+            summary = f"lay the foundation for the first {title.lower()} slice"
+        elif kind == "primary" and single_task:
+            objective = base_goal
+            summary = str(spec.get("summary") or str(spec.get("scope") or base_goal)).strip()
+        elif kind == "primary":
+            objective = f"Implement the first promotion-ready {title.lower()} slice."
+            summary = f"ship the first promotion-ready {title.lower()} path"
+        elif kind == "coverage":
+            objective = f"Close the remaining {title.lower()} acceptance, edge-case, and coverage gaps."
+            summary = f"close acceptance and edge-case gaps for {title.lower()}"
+        else:
+            objective = f"Implement the next scoped {title.lower()} increment without broadening into unrelated feature work."
+            summary = f"ship the next scoped {title.lower()} increment"
+
+        phase_out_of_scope = list(out_of_scope)
+        if count > 1:
+            phase_out_of_scope.append(f"other planned {title.lower()} slices outside this task")
+
+        evaluator_notes = _as_list(spec.get("evaluator_notes")) or [
+            f"Promote only when the {title.lower()} behavior works end-to-end in substance.",
+        ]
+        if kind == "foundation":
+            evaluator_notes = [
+                f"Promote only when the minimum enabling work for {title.lower()} is actually in place.",
+                *evaluator_notes,
+            ]
+        elif kind == "coverage":
+            evaluator_notes = [
+                f"Promote only when the remaining acceptance and edge-case gaps for {title.lower()} are closed in substance.",
+                *evaluator_notes,
+            ]
+
+        tasks.append(
+            {
+                "phase_slug": phase_slug,
+                "title": title_for_phase,
+                "prompt_docs": prompt_docs,
+                "required_commands": required_commands,
+                "required_files": required_files,
+                "human_review_triggers": human_review_triggers,
+                "objective": objective,
+                "scope_bullets": scope_bullets,
+                "out_of_scope_bullets": phase_out_of_scope,
+                "exit_criteria": exit_criteria,
+                "required_checks": required_checks,
+                "evaluator_notes": evaluator_notes,
+                "summary": summary,
+                "why_now": str(spec.get("why_now") or ""),
+                "implementation_notes_bullets": implementation_notes,
+            }
+        )
+    return tasks
+
+
 def derive_exec_tasks_from_feature_specs(
     feature_specs: list[dict[str, object]],
     project_name: str,
     *,
     runtime_startup_required: bool,
+    slice_size: str = "balanced",
+    preferred_total_tasks: int | None = None,
 ) -> list[dict[str, object]]:
     derived: list[dict[str, object]] = []
     ordered_specs: list[tuple[str, dict[str, object]]] = []
@@ -105,61 +596,43 @@ def derive_exec_tasks_from_feature_specs(
         filename = str(spec.get("filename") or f"{slug}.md")
         ordered_specs.append((filename, spec))
 
-    hardening_order = 10 + len(ordered_specs) + 1
-    hardening_id = f"{hardening_order:03d}-hardening-and-maintenance"
+    profiles = [_build_spec_profile(spec) for _, spec in ordered_specs]
+    target_non_hardening_tasks = preferred_total_tasks if preferred_total_tasks is not None else sum(
+        _initial_task_count_for_profile(profile, slice_size) for profile in profiles
+    )
+    counts = _distribute_task_counts(
+        profiles,
+        slice_size=slice_size,
+        preferred_total_tasks=target_non_hardening_tasks,
+    )
 
-    for index, (filename, spec) in enumerate(ordered_specs, start=1):
-        order = 10 + index
-        task_id = f"{order:03d}-{str(spec.get('slug') or _slugify(str(spec.get('title') or 'feature')))}"
-        title = str(spec.get("title") or "Feature slice")
-        validation = _as_list(spec.get("validation_bullets"))
-        behavior = _as_list(spec.get("behavior_bullets"))
-        out_of_scope = _as_list(spec.get("out_of_scope_bullets")) or [
-            "unrelated feature fronts",
-            "future product expansion beyond this feature",
-        ]
-        required_files = _as_list(spec.get("required_files"))
-        required_commands = _as_list(spec.get("required_commands")) or ["npm run verify"]
-        required_checks = _as_list(spec.get("required_checks")) or required_commands
-        human_review_triggers = _as_list(spec.get("human_review_triggers")) or [
-            "The task broadens into unrelated feature work.",
-            "The deterministic checks do not actually prove the claimed behavior.",
-        ]
-        evaluator_notes = _as_list(spec.get("evaluator_notes")) or [
-            f"Promote only when the {title.lower()} behavior works end-to-end in substance.",
-        ]
-        summary = str(spec.get("summary") or str(spec.get("scope") or str(spec.get("goal") or title))).strip()
-        prompt_docs = [
-            "AGENTS.md",
-            "ARCHITECTURE.md",
-            "docs/FRONTEND.md",
-            _product_spec_doc(filename),
-        ]
-
-        next_task_on_success = (
-            f"{11 + index:03d}-{str(ordered_specs[index][1].get('slug') or _slugify(str(ordered_specs[index][1].get('title') or 'feature')))}"
-            if index < len(ordered_specs)
-            else hardening_id
+    non_hardening_tasks: list[dict[str, object]] = []
+    for (filename, spec), profile, count in zip(ordered_specs, profiles, counts, strict=False):
+        non_hardening_tasks.extend(
+            _derive_tasks_for_spec(
+                filename,
+                spec,
+                profile,
+                count=count,
+                project_name=project_name,
+            )
         )
-        status = "active" if index == 1 else "queued"
+
+    hardening_order = 10 + len(non_hardening_tasks) + 1
+    hardening_id = f"{hardening_order:03d}-hardening-and-maintenance"
+    for index, task in enumerate(non_hardening_tasks, start=1):
+        order = 10 + index
+        task_id = f"{order:03d}-{task.pop('phase_slug')}"
+        next_task_on_success = (
+            f"{order + 1:03d}-{non_hardening_tasks[index].get('phase_slug')}" if index < len(non_hardening_tasks) else hardening_id
+        )
         derived.append(
             {
                 "id": task_id,
-                "title": title,
                 "order": order,
-                "status": status,
+                "status": "active" if index == 1 else "queued",
                 "next_task_on_success": next_task_on_success,
-                "prompt_docs": prompt_docs,
-                "required_commands": required_commands,
-                "required_files": required_files,
-                "human_review_triggers": human_review_triggers,
-                "objective": str(spec.get("goal") or f"Implement {title} for {project_name}."),
-                "scope_bullets": behavior,
-                "out_of_scope_bullets": out_of_scope,
-                "exit_criteria": validation,
-                "required_checks": required_checks,
-                "evaluator_notes": evaluator_notes,
-                "summary": summary,
+                **task,
             }
         )
 
@@ -358,12 +831,20 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
     feature_spec_objects = feature_specs if isinstance(feature_specs, list) else []
 
     runtime_startup_required = _runtime_startup_required(feature_spec_objects, answers_json)
+    slice_size = _normalize_slice_size(answers_json.get("SLICE_SIZE"))
+    backlog_target = _resolve_backlog_target(
+        answers_json,
+        slice_size=slice_size,
+        feature_count=len(feature_spec_objects),
+    )
 
     if exec_tasks is None and feature_spec_objects:
         exec_tasks = derive_exec_tasks_from_feature_specs(
             feature_spec_objects,
             repo_root.name,
             runtime_startup_required=runtime_startup_required,
+            slice_size=slice_size,
+            preferred_total_tasks=max(1, int(backlog_target["preferred_total_tasks"]) - 1),
         )
 
     if exec_tasks is not None:
@@ -527,6 +1008,7 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
                         f"This queue is the task-level promotion source of truth for {repo_root.name}.",
                         "",
                         "Only task files in this directory that contain a `taskmeta` JSON block are eligible for automatic selection, evaluation, and promotion.",
+                        "Queue depth is intentionally derived from the selected slice-size and backlog-depth planning controls when the planner provides them.",
                         "",
                         "## Current recommended sequence",
                         *sequence_lines,

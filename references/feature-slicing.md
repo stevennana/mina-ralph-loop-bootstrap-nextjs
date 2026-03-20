@@ -12,6 +12,7 @@ Each distinct feature area should normally get:
 - one or more small executable tasks under `docs/exec-plans/active/`
 - in the initial queue, at least one executable task that maps cleanly to that spec
 - its exec-plan page written only after the related architecture/design/product docs are reviewed and tightened
+- additional exec-plan pages for the same spec whenever the selected slice-size or backlog-depth target would otherwise force one oversized task
 
 ## What Counts As A Distinct Feature
 
@@ -44,6 +45,7 @@ If the repo has multiple in-scope user-visible features:
 - the active queue should sequence them explicitly
 - the first executable task should not try to finish all of them at once
 - each non-hardening executable task should usually point at exactly one product spec
+- a product spec may legitimately map to multiple executable tasks when that keeps the slices narrow
 - each exec-plan page should be reviewed individually before handoff
 
 ## External Resource Rule

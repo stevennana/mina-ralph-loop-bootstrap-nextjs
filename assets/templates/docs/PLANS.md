@@ -58,7 +58,7 @@ Read:
 - Do not treat an empty active queue as the end of the product.
 - Re-enter through docs first: update the relevant product specs and design docs before writing the next tasks.
 - Preserve completed plans as history and seed a new active sequence for the next feature wave.
-- Make the next tranche small, ordered, and promotion-ready before implementation begins.
+- Make the next tranche ordered, promotion-ready, and sized to the requested backlog depth before implementation begins.
 
 ## Merge / Throughput Philosophy
 {{MERGE_PHILOSOPHY_BULLETS}}

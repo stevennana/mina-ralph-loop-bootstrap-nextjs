@@ -73,7 +73,9 @@ If any of those still requires guessing, keep asking.
 - Keep completed plans in `docs/exec-plans/completed/` as history.
 - Do not silently rewrite history to make the queue look cleaner.
 - Update `docs/exec-plans/active/index.md` so the next wave order is obvious.
-- Prefer a short sequence of small vertical slices over one large omnibus plan.
+- Prefer small vertical slices over one large omnibus plan, and size the queue to the requested backlog depth.
+- When the founder does not specify queue depth, default to `SLICE_SIZE=balanced` and `BACKLOG_DEPTH=10-15 tasks`.
+- Allow multiple exec-plans to reference the same product spec when that is the clearest way to keep tasks narrow.
 - Include at least one user-visible slice in the new wave unless the founder explicitly wants infrastructure-only follow-up.
 - Refresh `docs/PLANS.md`, `docs/RELIABILITY.md`, and other harness-engineering docs if the new wave changes the operator contract.
 - Treat the expansion-run deliverable as docs and exec-plans only; do not start implementation in the same pass.

@@ -219,11 +219,14 @@ Then expand the rendered docs into project-specific content.
 When the answers JSON includes structured feature data:
 
 - populate `FEATURE_SPECS` with one entry per distinct user-visible feature
-- populate `EXEC_TASKS` with a small sequenced task queue rather than only the baseline trio
+- optionally set `SLICE_SIZE` to `micro`, `balanced`, or `coarse` to control task granularity
+- optionally set `BACKLOG_DEPTH` to values such as `next wave`, `10-15 tasks`, `~2-3 days`, or a task-count target
+- optionally set `TARGET_EXEC_TASK_COUNT` when the founder wants an explicit queue length
+- populate `EXEC_TASKS` with a sequenced task queue rather than only the baseline trio
 - keep each non-hardening task aligned to exactly one product spec whenever possible
 - let `scripts/render_docs.py` materialize those feature specs and executable task files alongside the baseline docs
 
-If `FEATURE_SPECS` is present and `EXEC_TASKS` is omitted, `scripts/render_docs.py` will derive one task per feature spec plus a separate hardening task.
+If `FEATURE_SPECS` is present and `EXEC_TASKS` is omitted, `scripts/render_docs.py` will derive a queue whose size follows the selected `SLICE_SIZE` and `BACKLOG_DEPTH` controls. Multiple exec-plans may map to the same product spec when that is required to keep the slices narrow.
 If `EXEC_TASKS` is provided but still collapses multiple product specs into broad tasks, the renderer should fail instead of silently accepting the queue.
 
 For continuation runs:
@@ -373,6 +376,8 @@ At minimum include:
 
 Treat that as a floor, not a target.
 If the product has multiple distinct user-visible features, generate as many small active tasks as needed to represent them.
+Queue depth should follow the founder's requested backlog size. When the founder does not specify one, default to `SLICE_SIZE=balanced` and `BACKLOG_DEPTH=10-15 tasks`.
+Do not stop at one task per feature spec when a large feature still needs to be broken into smaller promotion-ready slices.
 
 Each active task must have:
 
@@ -400,6 +405,7 @@ The next wave should normally include:
 
 Update `docs/exec-plans/active/index.md` so the new sequence is readable as the next tranche of work.
 Do not hide multiple major feature fronts inside a single “first slice” task.
+If the founder asks for a longer backlog, continue splitting the in-scope feature fronts until the requested backlog depth is represented or the current docs can no longer support narrower plans without guessing.
 
 ### 6b. Expand after the initial queue is complete
 

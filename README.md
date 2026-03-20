@@ -350,7 +350,7 @@ If the answers JSON includes structured `FEATURE_SPECS` and `EXEC_TASKS`, `scrip
 - a feature-sliced active queue under `docs/exec-plans/active/`
 - refreshed `index.md` files for those directories
 
-If `FEATURE_SPECS` is present without `EXEC_TASKS`, the renderer derives one task per feature spec plus a separate hardening task.
+If `FEATURE_SPECS` is present without `EXEC_TASKS`, the renderer derives a queue whose depth follows the selected `SLICE_SIZE` and `BACKLOG_DEPTH` controls. Multiple exec-plans may point at the same product spec when that is needed to keep the tasks narrow.
 If `EXEC_TASKS` is present but a task spans multiple product specs, the renderer now fails instead of accepting an oversized queue.
 
 ## Operating A Generated Repo
