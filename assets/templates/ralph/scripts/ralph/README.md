@@ -68,7 +68,7 @@ local work that is bound to that port.
 - generated repos should document a server log level environment variable such as `LOG_LEVEL`, with at least `trace`, `debug`, `info`, `warn`, and `error`
 - server wrappers default `MINAKEEP_DEBUG_SERVER=1`, so AI-tagging failures include debug details in the Next server logs without logging note bodies or tokens
 - inspect artifact files when the compact log points to a failed phase
-- `state/run-log.md` also appends a compact health line after each cycle: `o` for promoted success, `x` for completed non-promotion/failure, and `!` for stalled worker recovery
+- `state/run-log.md` also appends a compact health line after each cycle: `o` for promoted success, `x` for completed non-promotion/failure, and `!` for stalled worker triage stop
 
 ## Recommended usage
 
@@ -118,7 +118,8 @@ If no reason is supplied, the override records the default reason `operator manu
 - Prefer deterministic gates over “try harder” loops, and use evaluator review only when the task contract still needs semantic judgment.
 - Do not mix multiple feature fronts into one task.
 - `run-once.sh` always rewrites `state/current-cycle.json`, `state/evaluation.json`, `state/backlog.md`, and `state/last-result.txt`; treat those as loop-owned state.
-- if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for RCA
+- if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for operator triage
+- a single `!` does not automatically mean “create the RCA task now”; branch into the RCA/fix plan only after the same blocker repeats enough times to satisfy the environment-blocker rule
 - Required commands come from each task doc’s `taskmeta.required_commands`; `evaluate-task.mjs` runs exactly those commands plus required-file checks.
 - If `taskmeta.promotion_mode` is `deterministic_only`, `evaluate-task.mjs` promotes the task based on required command and required-file results alone.
 - `manual-promote.sh` is an explicit operator override; use it only for exceptional stalled-but-done cases. If you omit `--reason`, it records `operator manual promotion`.

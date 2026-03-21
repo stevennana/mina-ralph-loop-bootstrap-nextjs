@@ -402,7 +402,11 @@ Generated Ralph loops now support a compact cycle-health line inside `state/run-
 
 - `o` = cycle completed and task promoted
 - `x` = cycle completed but stayed not-done or failed
-- `!` = worker stalled and the loop stopped for RCA
+- `!` = worker stalled and the loop stopped for triage
+
+A single `!` does not mean the blocker RCA exec-plan should be created immediately.
+It means the unattended loop stopped, preserved evidence, and now needs operator triage.
+Only repeated environment-specific blockers on the same task should branch into the RCA/fix exec-plan flow.
 
 Example:
 
