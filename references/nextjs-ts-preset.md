@@ -50,6 +50,7 @@ Recommended operator logging shape:
 For this skill, `verify` is not advisory. Generated task contracts should treat the required test-bearing commands as hard promotion gates.
 During day-to-day implementation loops, prefer narrower checks first and reserve `verify` for completion gating.
 If a feature depends on an outside resource such as AI chat or another remote integration, the relevant E2E scenario should be part of the promotion contract.
+If a feature wave is mostly UI or UX work, require a dedicated Playwright UI command shaped like `npm run test:e2e -- --grep @ui-<task-or-surface>` and make screenshot, responsive, and accessibility checks part of that promotion contract.
 
 ## Minimum scaffold
 
@@ -80,5 +81,6 @@ Keep these defaults aligned unless there is a strong reason not to:
 - Do not leave the repo in a state where the evaluator can promote tasks despite failing required test commands.
 - Encourage focused unit and slice-level checks during implementation so the loop can turn quickly without weakening the final promotion gate.
 - Ensure external-resource features are represented in Playwright or equivalent E2E coverage before the related task is promotable.
+- Ensure UI-focused tasks can prove screenshot, responsive, and accessibility expectations through deterministic Playwright coverage rather than human approval.
 - If the app depends on DB or runtime preparation, do not leave `npm run start` unproven; wire an explicit startup smoke path into the repo contract.
 - Do not leave operators blind during manual verification; wire `start:logged`, `logs/`, and server log-level configuration into the generated repo contract.

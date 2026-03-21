@@ -20,6 +20,8 @@ Generated server code should expose at least `trace`, `debug`, `info`, `warn`, a
 Document which behaviors are protected by unit tests, which flows require end-to-end coverage, and which command failures block task promotion.
 When tests cover subtle or business-critical behavior, capture why those tests exist so future loops do not weaken them casually.
 If a user-visible behavior depends on an outside resource such as AI chat or a third-party service, require end-to-end coverage before promotion.
+If a task is mainly UI or UX work, require a dedicated `@ui-*` Playwright command with screenshot, responsive, and accessibility checks before promotion.
+UI tasks that fully prove quality through those deterministic checks may use `taskmeta.promotion_mode = deterministic_only` so promotion does not require human review.
 
 ## Known Gaps
 {{RELIABILITY_GAPS_BULLETS}}

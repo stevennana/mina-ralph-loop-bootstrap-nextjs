@@ -9,7 +9,8 @@ reliably decide when to advance. This version adds:
 
 - machine-readable task contracts in `docs/exec-plans/active/*.md`
 - deterministic checks
-- a read-only evaluator pass with structured JSON output
+- a read-only evaluator pass with structured JSON output for normal tasks
+- deterministic-only promotion for tasks whose quality is fully proven by required commands
 - automatic promotion to the next task when the current task is truly complete
 
 ## Why this matches the OpenAI harness pattern
@@ -30,7 +31,7 @@ contracts and adding a separate evaluator step before promotion.
 - `scripts/ralph/ensure-e2e-port-free.sh`: clears port `3100` before E2E-capable verification commands
 - `scripts/ralph/status.sh`: inspect current task, latest evaluation, and backlog
 - `scripts/ralph/render-task-prompt.mjs`: build the worker prompt from the current task
-- `scripts/ralph/evaluate-task.mjs`: run deterministic checks and a read-only evaluator
+- `scripts/ralph/evaluate-task.mjs`: run deterministic checks and either auto-promote deterministic-only tasks or fall through to a read-only evaluator
 - `scripts/ralph/promote-task.mjs`: move a finished task forward
 - `state/current-task.txt`: current task id
 - `state/current-cycle.json`: live cycle phase/status for the current run
@@ -99,11 +100,12 @@ tail -f logs/next-server-*.log
 ## Operator guidance
 
 - Keep tasks small and vertically sliced.
-- Prefer deterministic gates plus evaluator review over “try harder” loops.
+- Prefer deterministic gates over “try harder” loops, and use evaluator review only when the task contract still needs semantic judgment.
 - Do not mix multiple feature fronts into one task.
 - `run-once.sh` always rewrites `state/current-cycle.json`, `state/evaluation.json`, `state/backlog.md`, and `state/last-result.txt`; treat those as loop-owned state.
 - if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for RCA
 - Required commands come from each task doc’s `taskmeta.required_commands`; `evaluate-task.mjs` runs exactly those commands plus required-file checks.
+- If `taskmeta.promotion_mode` is `deterministic_only`, `evaluate-task.mjs` promotes the task based on required command and required-file results alone.
 - Port cleanup is executed automatically only by the evaluator path for `npm run verify`, `npm run test:e2e`, or other Playwright-bearing commands. Manual local runs do not get that cleanup for free.
 - `ensure-e2e-port-free.sh` is intentionally aggressive and may terminate unrelated processes bound to `127.0.0.1:3100`.
 - If the evaluator repeatedly returns `not_done`, tighten the active task doc instead of making the prompt larger.

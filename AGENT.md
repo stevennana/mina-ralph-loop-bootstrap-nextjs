@@ -36,6 +36,8 @@ When enhancing this skill, preserve these invariants:
 - Each non-hardening executable task should usually map to exactly one product spec.
 - A single product spec may legitimately map to multiple non-hardening exec-plans when that keeps the slices narrow.
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
+- UI-focused tasks should require deterministic screenshot, responsive, and accessibility proof before promotion.
+- UI-focused tasks should support fully automated promotion via `taskmeta.promotion_mode = deterministic_only`.
 - Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
 - Tests should explain the behavior they protect when that context would otherwise be lost across loops.
 - External-resource features should require E2E coverage before promotion.
@@ -72,12 +74,13 @@ Before changing behavior, read these files in order:
 3. `references/doc-baseline.md`
 4. `references/interview-checklist.md`
 5. `references/feature-slicing.md`
-6. `references/nextjs-ts-preset.md`
-7. `references/server-logging.md`
-8. `scripts/render_docs.py`
-9. `scripts/install_ralph.py`
-10. `scripts/companion_skills.py`
-11. the relevant files under `assets/templates/`
+6. `references/ui-verification.md`
+7. `references/nextjs-ts-preset.md`
+8. `references/server-logging.md`
+9. `scripts/render_docs.py`
+10. `scripts/install_ralph.py`
+11. `scripts/companion_skills.py`
+12. the relevant files under `assets/templates/`
 
 ## Repository Map
 
