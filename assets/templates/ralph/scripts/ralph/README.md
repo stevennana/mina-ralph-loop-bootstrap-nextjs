@@ -9,7 +9,8 @@ reliably decide when to advance. This version adds:
 
 - machine-readable task contracts in `docs/exec-plans/active/*.md`
 - deterministic checks
-- a read-only evaluator pass with structured JSON output
+- a read-only evaluator pass with structured JSON output for normal tasks
+- deterministic-only promotion for tasks whose quality is fully proven by required commands
 - automatic promotion to the next task when the current task is truly complete
 
 ## Why this matches the OpenAI harness pattern
@@ -30,8 +31,9 @@ contracts and adding a separate evaluator step before promotion.
 - `scripts/ralph/ensure-e2e-port-free.sh`: clears port `3100` before E2E-capable verification commands
 - `scripts/ralph/status.sh`: inspect current task, latest evaluation, and backlog
 - `scripts/ralph/render-task-prompt.mjs`: build the worker prompt from the current task
-- `scripts/ralph/evaluate-task.mjs`: run deterministic checks and a read-only evaluator
+- `scripts/ralph/evaluate-task.mjs`: run deterministic checks and either auto-promote deterministic-only tasks or fall through to a read-only evaluator
 - `scripts/ralph/promote-task.mjs`: move a finished task forward
+- `scripts/ralph/manual-promote.sh`: manually promote the current task with a recorded reason and optional artifact reference
 - `state/current-task.txt`: current task id
 - `state/current-cycle.json`: live cycle phase/status for the current run
 - `state/evaluation.json`: latest decision
@@ -96,15 +98,31 @@ ls logs/
 tail -f logs/next-server-*.log
 ```
 
+### Manual promotion for stalled-but-done tasks
+
+Use this only when the task is substantively complete but the loop stalled or the latest evaluation is no longer trustworthy.
+
+```bash
+./scripts/ralph/manual-promote.sh
+
+./scripts/ralph/manual-promote.sh \
+  --reason "task is complete; loop stalled after implementation" \
+  --artifact state/artifacts/<cycle-dir>
+```
+
+If no reason is supplied, the override records the default reason `operator manual promotion`.
+
 ## Operator guidance
 
 - Keep tasks small and vertically sliced.
-- Prefer deterministic gates plus evaluator review over “try harder” loops.
+- Prefer deterministic gates over “try harder” loops, and use evaluator review only when the task contract still needs semantic judgment.
 - Do not mix multiple feature fronts into one task.
 - `run-once.sh` always rewrites `state/current-cycle.json`, `state/evaluation.json`, `state/backlog.md`, and `state/last-result.txt`; treat those as loop-owned state.
 - if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for RCA
 - Required commands come from each task doc’s `taskmeta.required_commands`; `evaluate-task.mjs` runs exactly those commands plus required-file checks.
+- If `taskmeta.promotion_mode` is `deterministic_only`, `evaluate-task.mjs` promotes the task based on required command and required-file results alone.
+- `manual-promote.sh` is an explicit operator override; use it only for exceptional stalled-but-done cases. If you omit `--reason`, it records `operator manual promotion`.
 - Port cleanup is executed automatically only by the evaluator path for `npm run verify`, `npm run test:e2e`, or other Playwright-bearing commands. Manual local runs do not get that cleanup for free.
 - `ensure-e2e-port-free.sh` is intentionally aggressive and may terminate unrelated processes bound to `127.0.0.1:3100`.
 - If the evaluator repeatedly returns `not_done`, tighten the active task doc instead of making the prompt larger.
-- If a task is semantically done but not promotable, fix the contract or the deterministic checks; do not manually skip ahead silently.
+- If a task is semantically done but not promotable, fix the contract or the deterministic checks; if you must override, use `manual-promote.sh` so the reason is recorded instead of silently skipping ahead.

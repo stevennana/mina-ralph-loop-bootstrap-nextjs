@@ -232,6 +232,49 @@ def _spec_text(spec: dict[str, object]) -> str:
     return " ".join(parts).lower()
 
 
+def _is_ui_focused_spec(spec: dict[str, object]) -> bool:
+    text = _spec_text(spec)
+    ui_keywords = (
+        "ui",
+        "ux",
+        "visual",
+        "design",
+        "layout",
+        "responsive",
+        "mobile",
+        "desktop",
+        "typography",
+        "density",
+        "spacing",
+        "grid",
+        "shell",
+        "panel",
+        "card",
+        "cards",
+        "button",
+        "buttons",
+        "polish",
+        "showroom",
+        "readability",
+        "monochrome",
+        "palette",
+        "styling",
+        "style token",
+        "design system",
+        "primitive",
+        "primitives",
+    )
+    return sum(1 for keyword in ui_keywords if keyword in text) >= 2
+
+
+def _ui_verification_tag(phase_slug: str) -> str:
+    return f"@ui-{phase_slug}"
+
+
+def _ui_verification_command(phase_slug: str) -> str:
+    return f"npm run test:e2e -- --grep {_ui_verification_tag(phase_slug)}"
+
+
 def _build_spec_profile(spec: dict[str, object]) -> dict[str, object]:
     behavior = _as_list(spec.get("behavior_bullets"))
     validation = _as_list(spec.get("validation_bullets"))
@@ -286,6 +329,7 @@ def _build_spec_profile(spec: dict[str, object]) -> dict[str, object]:
         "needs_foundation": needs_foundation,
         "needs_coverage_followup": needs_coverage_followup,
         "followup_capacity": followup_capacity,
+        "ui_focused": _is_ui_focused_spec(spec),
         "complexity_score": len(behavior) * 2
         + len(validation)
         + (2 if external_dependency else 0)
@@ -441,12 +485,10 @@ def _derive_tasks_for_spec(
     slug = str(spec.get("slug") or _slugify(title))
     behavior = list(profile["behavior"])
     validation = list(profile["validation"])
-    prompt_docs = [
-        "AGENTS.md",
-        "ARCHITECTURE.md",
-        "docs/FRONTEND.md",
-        _product_spec_doc(filename),
-    ]
+    prompt_docs = ["AGENTS.md", "ARCHITECTURE.md"]
+    if profile["ui_focused"]:
+        prompt_docs.append("docs/DESIGN.md")
+    prompt_docs.extend(["docs/FRONTEND.md", _product_spec_doc(filename)])
     required_commands = list(profile["required_commands"]) or ["npm run verify"]
     required_checks = list(profile["required_checks"]) or list(required_commands)
     required_files = list(profile["required_files"])
@@ -485,9 +527,17 @@ def _derive_tasks_for_spec(
     tasks: list[dict[str, object]] = []
     behavior_chunk_index = 0
     validation_chunk_index = 0
-    for phase_index, (kind, followup_index) in enumerate(phase_plan):
+    for kind, followup_index in phase_plan:
         title_for_phase = _phase_title(title, kind=kind, followup_index=followup_index, single_task=single_task)
         phase_slug = slug if single_task and kind == "primary" else f"{slug}-{_phase_slug(kind, followup_index)}"
+        ui_verification_command = _ui_verification_command(phase_slug) if profile["ui_focused"] else None
+        ui_verification_tag = _ui_verification_tag(phase_slug) if profile["ui_focused"] else None
+        phase_required_commands = list(required_commands)
+        phase_required_checks = list(required_checks)
+        if ui_verification_command and ui_verification_command not in phase_required_commands:
+            phase_required_commands.append(ui_verification_command)
+        if ui_verification_command and ui_verification_command not in phase_required_checks:
+            phase_required_checks.append(ui_verification_command)
 
         if kind in {"primary", "followup"}:
             scope_bullets = behavior_chunks[behavior_chunk_index]
@@ -516,12 +566,27 @@ def _derive_tasks_for_spec(
             exit_criteria = _default_exit_criteria(title, kind=kind)
         elif "The task's required checks pass." not in exit_criteria:
             exit_criteria = [*exit_criteria, "The task's required checks pass."]
+        if profile["ui_focused"]:
+            exit_criteria.extend(
+                [
+                    f"`{ui_verification_command}` passes.",
+                    "The scoped UI screenshots match the expected baseline at desktop `1440x900` and mobile `390x844` viewports.",
+                    "Automated accessibility checks pass for the scoped UI surface.",
+                ]
+            )
 
         implementation_notes = _as_list(spec.get("implementation_notes_bullets"))
         if kind == "coverage" and profile["external_dependency"]:
             implementation_notes = [
                 *implementation_notes,
                 f"Require the relevant end-to-end scenario for {title.lower()} before promotion.",
+            ]
+        if profile["ui_focused"]:
+            implementation_notes = [
+                *implementation_notes,
+                f"Add deterministic Playwright coverage tagged `{ui_verification_tag}` for this task.",
+                "Use stable fixture data, disable or stabilize animations, and capture screenshot baselines for both desktop and mobile viewports.",
+                "Run `@axe-core/playwright` inside the tagged UI spec and fail the test on serious or critical issues.",
             ]
 
         if kind == "foundation":
@@ -557,24 +622,31 @@ def _derive_tasks_for_spec(
                 f"Promote only when the remaining acceptance and edge-case gaps for {title.lower()} are closed in substance.",
                 *evaluator_notes,
             ]
+        if profile["ui_focused"]:
+            evaluator_notes = [
+                f"This UI task uses fully automated promotion via `{ui_verification_command}` and does not require human review once all required commands pass.",
+                "Do not apply subjective aesthetic judgment in the promotion decision; rely on the deterministic command results for screenshots, responsive behavior, and accessibility.",
+                *evaluator_notes,
+            ]
 
         tasks.append(
             {
                 "phase_slug": phase_slug,
                 "title": title_for_phase,
                 "prompt_docs": prompt_docs,
-                "required_commands": required_commands,
+                "required_commands": phase_required_commands,
                 "required_files": required_files,
                 "human_review_triggers": human_review_triggers,
                 "objective": objective,
                 "scope_bullets": scope_bullets,
                 "out_of_scope_bullets": phase_out_of_scope,
                 "exit_criteria": exit_criteria,
-                "required_checks": required_checks,
+                "required_checks": phase_required_checks,
                 "evaluator_notes": evaluator_notes,
                 "summary": summary,
                 "why_now": str(spec.get("why_now") or ""),
                 "implementation_notes_bullets": implementation_notes,
+                "promotion_mode": "deterministic_only" if profile["ui_focused"] else "llm_evaluator",
             }
         )
     return tasks
@@ -698,11 +770,15 @@ def validate_exec_tasks(feature_specs: list[dict[str, object]], exec_tasks: list
         return
 
     spec_doc_map: dict[str, str] = {}
+    ui_spec_docs: set[str] = set()
     for spec in feature_specs:
         title = str(spec.get("title", "")).strip()
         slug = str(spec.get("slug") or _slugify(title))
         filename = str(spec.get("filename") or f"{slug}.md")
-        spec_doc_map[_product_spec_doc(filename)] = title or filename
+        spec_doc = _product_spec_doc(filename)
+        spec_doc_map[spec_doc] = title or filename
+        if _is_ui_focused_spec(spec):
+            ui_spec_docs.add(spec_doc)
 
     if len(exec_tasks) < len(feature_specs) + 1:
         raise ValueError(
@@ -722,6 +798,16 @@ def validate_exec_tasks(feature_specs: list[dict[str, object]], exec_tasks: list
             raise ValueError(
                 f"Task '{task.get('id') or task.get('title')}' must reference exactly one product spec in prompt_docs to keep the slice narrow."
             )
+        if product_docs[0] in ui_spec_docs:
+            required_commands = _as_list(task.get("required_commands"))
+            if not any(command.startswith("npm run test:e2e -- --grep @ui-") for command in required_commands):
+                raise ValueError(
+                    f"UI-focused task '{task.get('id') or task.get('title')}' must require a dedicated @ui-* Playwright command."
+                )
+            if str(task.get("promotion_mode") or "llm_evaluator") != "deterministic_only":
+                raise ValueError(
+                    f"UI-focused task '{task.get('id') or task.get('title')}' must set promotion_mode to 'deterministic_only'."
+                )
         covered_specs.add(product_docs[0])
 
     missing = [spec_doc_map[doc] for doc in spec_doc_map if doc not in covered_specs]
@@ -904,6 +990,7 @@ def render_structured_feature_artifacts(repo_root: Path, answers_json: dict[str,
                 "required_commands": required_commands,
                 "required_files": required_files,
                 "human_review_triggers": human_review_triggers,
+                "promotion_mode": str(task.get("promotion_mode") or "llm_evaluator"),
             }
 
             task_path = active_dir / filename

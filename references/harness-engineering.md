@@ -57,7 +57,8 @@ The Ralph loop relies on this.
 The loop should include:
 
 - deterministic checks
-- a separate evaluator pass
+- a separate evaluator pass for tasks that still need semantic review
+- deterministic-only promotion modes for tasks whose quality can be fully proven by automation
 - promotion only when the task is substantively complete
 
 ### Throughput changes the merge philosophy
@@ -94,6 +95,6 @@ When bootstrapping a new repo, preserve these article-derived properties:
 1. docs first
 2. agent-legible repo structure
 3. deterministic verification
-4. separate evaluator and promotion logic
+4. separate evaluator and promotion logic, with deterministic-only promotion available when the task contract proves quality fully by automation
 5. repeatable loop commands
 6. explicit cleanup and debt tracking

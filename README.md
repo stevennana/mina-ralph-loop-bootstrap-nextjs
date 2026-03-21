@@ -35,7 +35,7 @@ This skill follows the harness-engineering model:
 - `AGENTS.md` in generated repos stays short and points into `docs/`
 - product, architecture, quality, reliability, security, and plans live in markdown
 - active tasks are executable contracts with `taskmeta`
-- promotion depends on deterministic checks plus a separate evaluator step
+- promotion depends on deterministic checks, with a separate evaluator step for normal tasks and deterministic-only promotion available for UI-focused tasks
 - failing required test commands block promotion
 
 It also adopts a few practical Ralph-style operating rules:
@@ -45,6 +45,7 @@ It also adopts a few practical Ralph-style operating rules:
 - prefer targeted checks while iterating, then use `verify` as the promotion gate
 - document why important tests exist so future loops do not weaken them accidentally
 - if a feature depends on an outside resource such as AI chat, it should be covered by an E2E scenario before promotion
+- if a feature wave is mostly UI or UX work, require a dedicated `@ui-*` Playwright command plus screenshot, responsive, and accessibility checks before promotion
 - if the same environment-specific blocker repeats three times, branch into an RCA/fix exec-plan instead of stalling the original task forever
 - if the app has persistent runtime state, prove the production-style startup path explicitly instead of assuming `build` is enough
 
@@ -57,6 +58,7 @@ It also adopts a few practical Ralph-style operating rules:
 - `references/environment-blockers.md`: exceptional path for repeated environment-specific verification blockers
 - `references/runtime-startup.md`: contract for proving production-style startup in stateful apps
 - `references/server-logging.md`: contract for operator-visible Next.js server logging, `start:logged`, and log-level configuration
+- `references/ui-verification.md`: contract for deterministic UI/UX promotion via Playwright tags, screenshots, and accessibility checks
 - `assets/templates/docs/references/README.md`: rule for turning user-provided references into durable repo-local reference notes
 - `scripts/render_docs.py`: renders the baseline docs into a target repo
 - `scripts/install_ralph.py`: installs the Ralph assets into a target repo
@@ -417,6 +419,7 @@ Important state files in generated repos:
 - `state/backlog.md`: rendered queue snapshot
 - `state/task-history.md`: completed-task history
 - `state/artifacts/`: per-cycle worker, evaluator, commit, and prompt artifacts
+- `scripts/ralph/manual-promote.sh`: explicit operator override for stalled-but-done tasks, with optional reason and artifact arguments
 
 Generated repos should treat server logging as part of the normal operator contract:
 

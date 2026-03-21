@@ -41,6 +41,7 @@ Check that it has:
 - explicit out-of-scope boundaries
 - exit criteria that prove the feature, not the whole product
 - required checks that match the behavior
+- UI-focused tasks with screenshots, responsive checks, and accessibility gates when visual quality is the point of the task
 - enough description that the implementer does not need to infer missing behavior from other docs alone
 
 ## When To Loop
