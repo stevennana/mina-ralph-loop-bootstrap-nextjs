@@ -419,6 +419,7 @@ Important state files in generated repos:
 - `state/backlog.md`: rendered queue snapshot
 - `state/task-history.md`: completed-task history
 - `state/artifacts/`: per-cycle worker, evaluator, commit, and prompt artifacts
+- `scripts/ralph/manual-promote.sh`: explicit operator override for stalled-but-done tasks, with optional reason and artifact arguments
 
 Generated repos should treat server logging as part of the normal operator contract:
 
