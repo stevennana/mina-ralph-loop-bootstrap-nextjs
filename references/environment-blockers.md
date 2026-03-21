@@ -30,6 +30,10 @@ If the worker phase stays active but `worker.jsonl` stops changing for longer th
 - stop the worker
 - preserve a stall artifact with timing evidence
 - stop the unattended loop instead of retrying blindly
+- hand the task to operator triage before deciding whether this is a transient issue, a completed-but-stalled case, or a repeated blocker that now needs RCA
+
+A single stall does not automatically mean “create the RCA task now.”
+It means “stop safely, preserve evidence, and triage.”
 
 ## Exceptional Path
 

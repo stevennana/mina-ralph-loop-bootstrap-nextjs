@@ -462,7 +462,9 @@ If the same environment-specific blocker appears three times for the current tas
 - after it is resolved, return to the original task instead of abandoning the whole process
 
 Generated Ralph loops should also treat `worker.jsonl` updates as the worker heartbeat.
-If the worker phase goes silent past the configured stall timeout, mark the cycle as stalled, stop the unattended loop, preserve evidence, and hand off to the blocker/RCA path instead of waiting forever on `codex exec`.
+If the worker phase goes silent past the configured stall timeout, mark the cycle as stalled, stop the unattended loop, preserve evidence, and hand off to operator triage instead of waiting forever on `codex exec`.
+Do not treat a first stall as automatic RCA-plan creation.
+Branch into the blocker/RCA path only after the same environment-specific blocker has repeated enough times to satisfy the exceptional-flow rule.
 
 ### 8. Consider companion skills when allowed
 
