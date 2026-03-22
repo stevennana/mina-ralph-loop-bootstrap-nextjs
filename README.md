@@ -120,10 +120,10 @@ The skill should not pre-execute the queued feature tasks during the initial boo
 If a similar environment-specific verification blocker happens three times on the same task:
 
 1. stop retrying that task unchanged
-2. write down the RCA evidence
-3. create a small blocker-specific exec-plan
-4. resolve that blocker plan
-5. return to the original task afterward
+2. persist the blocker signature and RCA evidence
+3. auto-create a small blocker-specific exec-plan
+4. switch the queue to that blocker plan
+5. return to the original task afterward through normal promotion
 
 ## Continue After The Initial Plans Are Done
 
@@ -399,12 +399,12 @@ tail -f logs/next-server-*.log
 Generated Ralph loops now support a compact cycle-health line inside `state/run-log.md`:
 
 - `o` = cycle completed and task promoted
-- `x` = cycle completed but stayed not-done or failed
-- `!` = worker stalled and the loop stopped for triage
+- `x` = cycle completed but stayed not-done, failed, or auto-branched into RCA
+- `!` = worker stalled during that cycle
 
 A single `!` does not mean the blocker RCA exec-plan should be created immediately.
-It means the unattended loop stopped, preserved evidence, and now needs operator triage.
-Only repeated environment-specific blockers on the same task should branch into the RCA/fix exec-plan flow.
+It means the unattended loop preserved stall evidence and recorded the blocker signature first.
+Only repeated environment-specific blockers on the same task should branch into the RCA/fix exec-plan flow, and generated loops now auto-create that RCA task on the third identical blocker.
 
 Example:
 

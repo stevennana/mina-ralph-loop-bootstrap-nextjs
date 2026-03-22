@@ -31,10 +31,13 @@ contracts and adding a separate evaluator step before promotion.
 - `scripts/ralph/status.sh`: inspect current task, latest evaluation, and backlog
 - `scripts/ralph/render-task-prompt.mjs`: build the worker prompt from the current task
 - `scripts/ralph/evaluate-task.mjs`: run deterministic checks and a read-only evaluator
+- `scripts/ralph/record-blocker.mjs`: normalize and persist repeated blocker signatures
+- `scripts/ralph/branch-rca-task.mjs`: auto-create blocker RCA tasks and switch queue priority
 - `scripts/ralph/promote-task.mjs`: move a finished task forward
 - `state/current-task.txt`: current task id
 - `state/current-cycle.json`: live cycle phase/status for the current run
 - `state/evaluation.json`: latest decision
+- `state/blocker-tracker.json`: repeat-blocker signature history and RCA branching state
 - `state/backlog.md`: rendered queue snapshot
 - `state/artifacts/`: per-cycle raw worker/evaluator/commit artifacts
 
@@ -60,13 +63,14 @@ local work that is bound to that port.
 
 - `state/run-log.md` is the compact operator log
 - `state/current-cycle.json` shows whether the current run is still active and which phase it is in
+- `state/blocker-tracker.json` tracks repeated blocker signatures per task
 - full raw output for each cycle is written under `state/artifacts/`
 - Playwright-backed verification also writes Next.js server output to a per-cycle `*-next-server.log` artifact
 - manual operator runs should use `npm run start:logged`, which writes a timestamped Next.js server log under `logs/`
 - generated repos should document a server log level environment variable such as `LOG_LEVEL`, with at least `trace`, `debug`, `info`, `warn`, and `error`
 - server wrappers default `MINAKEEP_DEBUG_SERVER=1`, so AI-tagging failures include debug details in the Next server logs without logging note bodies or tokens
 - inspect artifact files when the compact log points to a failed phase
-- `state/run-log.md` also appends a compact health line after each cycle: `o` for promoted success, `x` for completed non-promotion/failure, and `!` for stalled worker triage stop
+- `state/run-log.md` also appends a compact health line after each cycle: `o` for promoted success, `x` for completed non-promotion/failure or RCA auto-branch, and `!` for a stalled worker cycle
 
 ## Recommended usage
 
@@ -102,8 +106,9 @@ tail -f logs/next-server-*.log
 - Prefer deterministic gates plus evaluator review over “try harder” loops.
 - Do not mix multiple feature fronts into one task.
 - `run-once.sh` always rewrites `state/current-cycle.json`, `state/evaluation.json`, `state/backlog.md`, and `state/last-result.txt`; treat those as loop-owned state.
-- if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for operator triage
-- a single `!` does not automatically mean “create the RCA task now”; branch into the RCA/fix plan only after the same blocker repeats enough times to satisfy the environment-blocker rule
+- if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for operator triage unless that identical stall has already repeated enough times to auto-branch into RCA
+- a single `!` does not automatically mean “create the RCA task now”; the loop records the blocker signature first and only auto-branches into the RCA/fix plan after the same blocker repeats enough times to satisfy the environment-blocker rule
+- when a repeated blocker hits the threshold, the loop auto-generates a blocker-specific RCA task, marks the original task as blocked, switches `state/current-task.txt` to the RCA task, and restores the original task when the RCA task promotes
 - Required commands come from each task doc’s `taskmeta.required_commands`; `evaluate-task.mjs` runs exactly those commands plus required-file checks.
 - Port cleanup is executed automatically only by the evaluator path for `npm run verify`, `npm run test:e2e`, or other Playwright-bearing commands. Manual local runs do not get that cleanup for free.
 - `ensure-e2e-port-free.sh` is intentionally aggressive and may terminate unrelated processes bound to `127.0.0.1:3100`.

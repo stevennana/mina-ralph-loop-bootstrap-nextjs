@@ -457,8 +457,8 @@ If the same environment-specific blocker appears three times for the current tas
 
 - stop retrying the same task as-is
 - record the repeated blocker in the task log and debt tracking
-- create a blocker-specific RCA/fix exec-plan
-- make that blocker plan the current plan
+- auto-create a blocker-specific RCA/fix exec-plan
+- make that blocker plan the current plan automatically
 - after it is resolved, return to the original task instead of abandoning the whole process
 
 Generated Ralph loops should also treat `worker.jsonl` updates as the worker heartbeat.
@@ -492,7 +492,7 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - If the user allows companion skills and they are installed, consider them before planning and implementation.
 - Before writing exec-plans, review and improve the related architecture, design, product, and frontend docs.
 - Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
-- Repeated environment-specific blockers should branch into a dedicated RCA/fix exec-plan after three occurrences, then return to the original task.
+- Repeated environment-specific blockers should auto-branch into a dedicated RCA/fix exec-plan after three occurrences, then return to the original task.
 - Generated Ralph loops should detect stalled workers from missing `worker.jsonl` progress, not from guessed Codex internal health, and surface compact `o`/`x`/`!` cycle marks in `state/run-log.md`.
 - Repos with persistent runtime state must prove a production-style startup path, not just build/test paths.
 - Generated repos should expose an operator-visible `start:logged` path and server log levels so humans can inspect real server flow without relying only on Ralph artifacts.

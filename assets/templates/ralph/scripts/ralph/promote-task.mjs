@@ -1,18 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
+import { clearTaskBlockers } from "./lib/blocker-utils.mjs";
 import {
   ACTIVE_TASK_DIR,
   COMPLETED_TASK_DIR,
   appendTaskProgressNote,
+  ensureDir,
+  fileExists,
   findTaskDoc,
+  normalizeTaskId,
   readCurrentTaskId,
   readText,
   replaceTaskMeta,
   timestamp,
   writeCurrentTaskId,
   writeText,
-  fileExists,
-  ensureDir,
 } from "./lib/task-utils.mjs";
 
 const evaluationPath = path.join(process.cwd(), "state", "evaluation.json");
@@ -36,6 +38,7 @@ if (!task) {
 
 const completedAt = timestamp();
 const nextTaskId = task.meta.next_task_on_success ?? null;
+const parentTaskId = task.meta.rca_for_task_id ?? null;
 
 const completedMeta = {
   ...task.meta,
@@ -64,7 +67,18 @@ if (nextTaskId) {
       const nextMeta = JSON.parse(match[1].trim());
       if (nextMeta.status !== "completed") {
         nextMeta.status = "active";
-        writeText(nextTaskPath, replaceTaskMeta(nextMarkdown, nextMeta));
+        if (parentTaskId && normalizeTaskId(parentTaskId) === normalizeTaskId(nextTaskId)) {
+          delete nextMeta.blocked_by_task_id;
+          delete nextMeta.blocker_signature;
+          delete nextMeta.blocked_at;
+        }
+        const restoredMarkdown = appendTaskProgressNote(
+          replaceTaskMeta(nextMarkdown, nextMeta),
+          parentTaskId && normalizeTaskId(parentTaskId) === normalizeTaskId(nextTaskId)
+            ? `${completedAt}: blocker RCA task ${task.id} completed; restored as current task after resolving blocker ${task.meta.blocker_signature ?? "unknown"}.`
+            : `${completedAt}: restored as current task after ${task.id} promotion.`,
+        );
+        writeText(nextTaskPath, restoredMarkdown);
       }
     }
   }
@@ -75,5 +89,10 @@ if (nextTaskId) {
 const historyPath = path.join(process.cwd(), "state", "task-history.md");
 const historyEntry = `- ${completedAt}: promoted ${task.id} -> ${nextTaskId ?? "NONE"}\n`;
 fs.appendFileSync(historyPath, historyEntry, "utf8");
+
+clearTaskBlockers(task.id);
+if (parentTaskId) {
+  clearTaskBlockers(parentTaskId);
+}
 
 console.log(`Promoted ${task.id} -> ${nextTaskId ?? "NONE"}`);
