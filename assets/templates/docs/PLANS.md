@@ -54,7 +54,7 @@ Read:
 - If a task is mainly UI or UX work, include a dedicated `@ui-*` Playwright command with screenshot, responsive, and accessibility checks in the promotion contract.
 - If a task sets `taskmeta.promotion_mode` to `deterministic_only`, passing the required commands is sufficient for promotion without human review.
 - If a plan page is still rough or broad, improve the supporting docs and split the plan before promotion work starts.
-- If the same environment-specific blocker repeats three times, branch into a dedicated RCA/fix exec-plan and then return to the original task.
+- If the same environment-specific blocker repeats three times, let the Ralph harness auto-branch into a dedicated RCA/fix exec-plan and then return to the original task through normal promotion.
 
 ## When The Current Queue Is Done
 - Do not treat an empty active queue as the end of the product.

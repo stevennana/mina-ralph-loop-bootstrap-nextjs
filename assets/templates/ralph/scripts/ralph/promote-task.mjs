@@ -1,18 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
+import { clearTaskBlockers } from "./lib/blocker-utils.mjs";
 import {
   ACTIVE_TASK_DIR,
   COMPLETED_TASK_DIR,
   appendTaskProgressNote,
+  ensureDir,
+  fileExists,
   findTaskDoc,
+  normalizeTaskId,
   readCurrentTaskId,
   readText,
   replaceTaskMeta,
   timestamp,
   writeCurrentTaskId,
   writeText,
-  fileExists,
-  ensureDir,
 } from "./lib/task-utils.mjs";
 
 const DEFAULT_MANUAL_PROMOTION_REASON = "operator manual promotion";
@@ -68,15 +70,7 @@ if (!task) {
 
 const completedAt = timestamp();
 const nextTaskId = task.meta.next_task_on_success ?? null;
-const overrideArtifact = options.artifact.trim();
-const manualOverride = options.manual
-  ? {
-      reason: options.reason.trim() || DEFAULT_MANUAL_PROMOTION_REASON,
-      artifact: overrideArtifact || null,
-      previous_evaluation_status: evaluation?.status ?? null,
-      promoted_at: completedAt,
-    }
-  : null;
+const parentTaskId = task.meta.rca_for_task_id ?? null;
 
 const completedMeta = {
   ...task.meta,
@@ -108,7 +102,18 @@ if (nextTaskId) {
       const nextMeta = JSON.parse(match[1].trim());
       if (nextMeta.status !== "completed") {
         nextMeta.status = "active";
-        writeText(nextTaskPath, replaceTaskMeta(nextMarkdown, nextMeta));
+        if (parentTaskId && normalizeTaskId(parentTaskId) === normalizeTaskId(nextTaskId)) {
+          delete nextMeta.blocked_by_task_id;
+          delete nextMeta.blocker_signature;
+          delete nextMeta.blocked_at;
+        }
+        const restoredMarkdown = appendTaskProgressNote(
+          replaceTaskMeta(nextMarkdown, nextMeta),
+          parentTaskId && normalizeTaskId(parentTaskId) === normalizeTaskId(nextTaskId)
+            ? `${completedAt}: blocker RCA task ${task.id} completed; restored as current task after resolving blocker ${task.meta.blocker_signature ?? "unknown"}.`
+            : `${completedAt}: restored as current task after ${task.id} promotion.`,
+        );
+        writeText(nextTaskPath, restoredMarkdown);
       }
     }
   }
@@ -122,23 +127,9 @@ const historyEntry = manualOverride
   : `- ${completedAt}: promoted ${task.id} -> ${nextTaskId ?? "NONE"}\n`;
 fs.appendFileSync(historyPath, historyEntry, "utf8");
 
-if (manualOverride) {
-  const manualEvaluation = {
-    checked_at: completedAt,
-    task_id: task.id,
-    status: "done",
-    promotion_eligible: true,
-    deterministic: evaluation?.deterministic ?? null,
-    llm: evaluation?.llm ?? null,
-    summary: `Task manually promoted by operator override. Reason: ${manualOverride.reason}`,
-    missing_requirements: evaluation?.missing_requirements ?? [],
-    manual_override: manualOverride,
-  };
-  writeText(evaluationPath, JSON.stringify(manualEvaluation, null, 2));
+clearTaskBlockers(task.id);
+if (parentTaskId) {
+  clearTaskBlockers(parentTaskId);
 }
 
-console.log(
-  manualOverride
-    ? `Manually promoted ${task.id} -> ${nextTaskId ?? "NONE"}`
-    : `Promoted ${task.id} -> ${nextTaskId ?? "NONE"}`
-);
+console.log(`Promoted ${task.id} -> ${nextTaskId ?? "NONE"}`);
