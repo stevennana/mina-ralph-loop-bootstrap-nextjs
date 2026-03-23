@@ -71,6 +71,15 @@ if (!task) {
 const completedAt = timestamp();
 const nextTaskId = task.meta.next_task_on_success ?? null;
 const parentTaskId = task.meta.rca_for_task_id ?? null;
+const overrideArtifact = options.artifact.trim();
+const manualOverride = options.manual
+  ? {
+      reason: options.reason.trim() || DEFAULT_MANUAL_PROMOTION_REASON,
+      artifact: overrideArtifact || null,
+      previous_evaluation_status: evaluation?.status ?? null,
+      promoted_at: completedAt,
+    }
+  : null;
 
 const completedMeta = {
   ...task.meta,
@@ -132,4 +141,23 @@ if (parentTaskId) {
   clearTaskBlockers(parentTaskId);
 }
 
-console.log(`Promoted ${task.id} -> ${nextTaskId ?? "NONE"}`);
+if (manualOverride) {
+  const manualEvaluation = {
+    checked_at: completedAt,
+    task_id: task.id,
+    status: "done",
+    promotion_eligible: true,
+    deterministic: evaluation?.deterministic ?? null,
+    llm: evaluation?.llm ?? null,
+    summary: `Task manually promoted by operator override. Reason: ${manualOverride.reason}`,
+    missing_requirements: evaluation?.missing_requirements ?? [],
+    manual_override: manualOverride,
+  };
+  writeText(evaluationPath, JSON.stringify(manualEvaluation, null, 2));
+}
+
+console.log(
+  manualOverride
+    ? `Manually promoted ${task.id} -> ${nextTaskId ?? "NONE"}`
+    : `Promoted ${task.id} -> ${nextTaskId ?? "NONE"}`
+);

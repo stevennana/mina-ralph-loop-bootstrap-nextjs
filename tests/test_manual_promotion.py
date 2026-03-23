@@ -12,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PROMOTE_TASK_TEMPLATE = REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "promote-task.mjs"
 MANUAL_PROMOTE_TEMPLATE = REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "manual-promote.sh"
 TASK_UTILS_TEMPLATE = REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "lib" / "task-utils.mjs"
+BLOCKER_UTILS_TEMPLATE = REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "lib" / "blocker-utils.mjs"
 
 
 def write_task(path: Path, *, task_id: str, title: str, status: str, next_task_on_success: str | None) -> None:
@@ -54,6 +55,7 @@ class ManualPromotionTests(unittest.TestCase):
         shutil.copy2(PROMOTE_TASK_TEMPLATE, self.repo_root / "scripts" / "ralph" / "promote-task.mjs")
         shutil.copy2(MANUAL_PROMOTE_TEMPLATE, self.repo_root / "scripts" / "ralph" / "manual-promote.sh")
         shutil.copy2(TASK_UTILS_TEMPLATE, self.repo_root / "scripts" / "ralph" / "lib" / "task-utils.mjs")
+        shutil.copy2(BLOCKER_UTILS_TEMPLATE, self.repo_root / "scripts" / "ralph" / "lib" / "blocker-utils.mjs")
 
         (self.repo_root / "state").mkdir(parents=True, exist_ok=True)
         (self.repo_root / "state" / "current-task.txt").write_text("025-owner-shell-density-reset\n", encoding="utf-8")
