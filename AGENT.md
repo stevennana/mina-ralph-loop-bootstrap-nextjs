@@ -36,6 +36,8 @@ When enhancing this skill, preserve these invariants:
 - Each non-hardening executable task should usually map to exactly one product spec.
 - A single product spec may legitimately map to multiple non-hardening exec-plans when that keeps the slices narrow.
 - Failing required test commands block promotion; evaluator judgment does not override red checks.
+- UI-focused tasks should require deterministic screenshot, responsive, and accessibility proof before promotion.
+- UI-focused tasks should support fully automated promotion via `taskmeta.promotion_mode = deterministic_only`.
 - Contributors should strengthen search-before-change behavior and avoid assumptions that code is missing.
 - Tests should explain the behavior they protect when that context would otherwise be lost across loops.
 - External-resource features should require E2E coverage before promotion.
@@ -55,6 +57,7 @@ When enhancing this skill, preserve these invariants:
 - If doc quality is still weak, loop on docs and plans; if the blocker is missing intent, go back to interview.
 - If the same environment-specific blocker repeats three times, create a dedicated RCA/fix exec-plan and then return to the original task.
 - Generated Ralph loops should monitor `worker.jsonl` progress as the worker heartbeat, stop stalled cycles safely, and surface compact `o`/`x`/`!` health marks in `state/run-log.md`.
+- Generated Ralph loops may offer a manual promotion path for exceptional stalled-but-done cases, but it must require an explicit reason and record that override durably in task history.
 - User-provided references should be analyzed into `docs/references/` and preserved as durable project knowledge.
 - The bootstrap session must stop after foundation completion and must not pre-execute queued feature tasks.
 - Expansion sessions must stop after the next-wave docs and exec-plans are refreshed; implementation should start only in a later explicit task-focused follow-up.
@@ -72,12 +75,13 @@ Before changing behavior, read these files in order:
 3. `references/doc-baseline.md`
 4. `references/interview-checklist.md`
 5. `references/feature-slicing.md`
-6. `references/nextjs-ts-preset.md`
-7. `references/server-logging.md`
-8. `scripts/render_docs.py`
-9. `scripts/install_ralph.py`
-10. `scripts/companion_skills.py`
-11. the relevant files under `assets/templates/`
+6. `references/ui-verification.md`
+7. `references/nextjs-ts-preset.md`
+8. `references/server-logging.md`
+9. `scripts/render_docs.py`
+10. `scripts/install_ralph.py`
+11. `scripts/companion_skills.py`
+12. the relevant files under `assets/templates/`
 
 ## Repository Map
 

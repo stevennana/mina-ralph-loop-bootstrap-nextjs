@@ -78,6 +78,7 @@ If any of those still requires guessing, keep asking.
 - Allow multiple exec-plans to reference the same product spec when that is the clearest way to keep tasks narrow.
 - Include at least one user-visible slice in the new wave unless the founder explicitly wants infrastructure-only follow-up.
 - Refresh `docs/PLANS.md`, `docs/RELIABILITY.md`, and other harness-engineering docs if the new wave changes the operator contract.
+- If the new wave is mostly UI or UX work, apply `references/ui-verification.md` and make the `@ui-*` promotion commands explicit in the new tasks.
 - Treat the expansion-run deliverable as docs and exec-plans only; do not start implementation in the same pass.
 
 ## Stop Boundary

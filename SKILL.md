@@ -173,6 +173,7 @@ You need a clear statement of:
 - which external-resource features require end-to-end proof before promotion
 - which deterministic commands prove the repo is healthy
 - which command failures block task promotion
+- which UI-heavy tasks need dedicated screenshot, responsive, and accessibility proof
 
 Cover at least:
 
@@ -186,6 +187,7 @@ Cover at least:
 - any special security or reliability constraints
 
 If a feature depends on an outside resource such as AI chat, a third-party API, external auth, or other remote infrastructure, require that feature to appear in an E2E scenario before the related task can promote.
+If a feature wave is mostly UI or UX work, use [references/ui-verification.md](references/ui-verification.md) and make the UI promotion contract explicit before plan generation starts.
 
 Use [references/interview-checklist.md](references/interview-checklist.md) as the stop condition.
 Do not start writing the docs until the answers are sufficient to fill the required markdown set in [references/doc-baseline.md](references/doc-baseline.md).
@@ -320,6 +322,7 @@ For example:
 - run focused E2E coverage only for the affected journey while stabilizing that slice
 - keep `npm run verify` as the promotion gate for task completion
 - use the runtime startup smoke when the app’s real `start` path depends on prepared runtime state
+- for UI-focused tasks, add a task-scoped `@ui-*` Playwright command and make screenshots, responsive assertions, and accessibility checks part of the promotion contract
 
 During the initial bootstrap run, stop at the foundation boundary.
 Do not implement the queued feature tasks during the bootstrap session.
@@ -395,6 +398,7 @@ Promotion rules must be explicit in each task:
 - a task cannot be promoted when its required test commands fail
 - evaluator approval cannot override failing deterministic checks
 - if a task introduces or changes an external-resource feature, the relevant E2E scenario must pass before promotion
+- if a task is UI-focused, it should use `taskmeta.promotion_mode = deterministic_only` so passing deterministic UI checks is sufficient for promotion without human review
 
 For continuation runs, create the next queue wave rather than replacing history wholesale.
 The next wave should normally include:

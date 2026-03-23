@@ -9,6 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "scripts"))
 
 from render_docs import (  # noqa: E402
+    _is_ui_focused_spec,
     _normalize_slice_size,
     _resolve_backlog_target,
     derive_exec_tasks_from_feature_specs,
@@ -90,6 +91,49 @@ class RenderDocsDerivationTests(unittest.TestCase):
 
         non_hardening = exec_tasks[:-1]
         self.assertGreaterEqual(len(non_hardening), 3)
+        validate_exec_tasks(feature_specs, exec_tasks)
+
+    def test_ui_focused_specs_get_ui_command_and_deterministic_promotion(self) -> None:
+        feature_specs = [
+            {
+                "title": "Responsive UI Behavior",
+                "slug": "responsive-ui-behavior",
+                "goal": "Polish the responsive UI behavior.",
+                "trigger": "User opens the redesigned surfaces.",
+                "scope": "Responsive UI behavior",
+                "behavior_bullets": [
+                    "Desktop layouts feel denser without becoming cramped",
+                    "Mobile layouts remain easy to scan and operate",
+                    "Shared design primitives drive the redesign",
+                    "Visual hierarchy stays clear across surfaces",
+                ],
+                "validation_bullets": [
+                    "Responsive behavior is stable at desktop and mobile breakpoints",
+                    "The redesigned surfaces stay visually coherent",
+                    "Required checks pass",
+                ],
+                "required_commands": ["npm run verify"],
+            }
+        ]
+
+        self.assertTrue(_is_ui_focused_spec(feature_specs[0]))
+
+        exec_tasks = derive_exec_tasks_from_feature_specs(
+            feature_specs,
+            "demo-app",
+            runtime_startup_required=False,
+            slice_size="balanced",
+            preferred_total_tasks=3,
+        )
+
+        non_hardening = exec_tasks[:-1]
+        self.assertTrue(non_hardening)
+        for task in non_hardening:
+            self.assertEqual(task["promotion_mode"], "deterministic_only")
+            self.assertIn("docs/DESIGN.md", task["prompt_docs"])
+            self.assertTrue(
+                any(command.startswith("npm run test:e2e -- --grep @ui-") for command in task["required_commands"])
+            )
         validate_exec_tasks(feature_specs, exec_tasks)
         prompt_docs_sets = {tuple(task["prompt_docs"]) for task in non_hardening}
         self.assertEqual(len(prompt_docs_sets), 1)

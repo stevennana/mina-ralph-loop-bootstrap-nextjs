@@ -17,14 +17,46 @@ import {
   writeText,
 } from "./lib/task-utils.mjs";
 
+const DEFAULT_MANUAL_PROMOTION_REASON = "operator manual promotion";
+
+function parseArgs(argv) {
+  const parsed = {
+    manual: false,
+    reason: DEFAULT_MANUAL_PROMOTION_REASON,
+    artifact: "",
+  };
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--manual") {
+      parsed.manual = true;
+      continue;
+    }
+    if (arg === "--reason") {
+      parsed.reason = argv[index + 1] ?? "";
+      index += 1;
+      continue;
+    }
+    if (arg === "--artifact") {
+      parsed.artifact = argv[index + 1] ?? "";
+      index += 1;
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+
+  return parsed;
+}
+
+const options = parseArgs(process.argv.slice(2));
 const evaluationPath = path.join(process.cwd(), "state", "evaluation.json");
-if (!fileExists(evaluationPath)) {
+if (!options.manual && !fileExists(evaluationPath)) {
   console.log("No evaluation.json found; skipping promotion.");
   process.exit(0);
 }
 
-const evaluation = JSON.parse(readText(evaluationPath));
-if (!evaluation.promotion_eligible) {
+const evaluation = fileExists(evaluationPath) ? JSON.parse(readText(evaluationPath)) : null;
+if (!options.manual && !evaluation?.promotion_eligible) {
   console.log(`Task ${evaluation.task_id ?? "(unknown)"} not eligible for promotion.`);
   process.exit(0);
 }
@@ -44,12 +76,15 @@ const completedMeta = {
   ...task.meta,
   status: "completed",
   completed_at: completedAt,
+  ...(manualOverride ? { manual_override: manualOverride } : {}),
 };
 
 let completedMarkdown = replaceTaskMeta(task.markdown, completedMeta);
 completedMarkdown = appendTaskProgressNote(
   completedMarkdown,
-  `${completedAt}: automatically promoted after deterministic checks and evaluator approval.`,
+  manualOverride
+    ? `${completedAt}: manually promoted by operator override. Reason: ${manualOverride.reason}${manualOverride.artifact ? ` Artifact: ${manualOverride.artifact}.` : ""}`
+    : `${completedAt}: automatically promoted after deterministic checks and evaluator approval.`,
 );
 
 ensureDir(COMPLETED_TASK_DIR);
@@ -87,7 +122,9 @@ if (nextTaskId) {
 }
 
 const historyPath = path.join(process.cwd(), "state", "task-history.md");
-const historyEntry = `- ${completedAt}: promoted ${task.id} -> ${nextTaskId ?? "NONE"}\n`;
+const historyEntry = manualOverride
+  ? `- ${completedAt}: manually promoted ${task.id} -> ${nextTaskId ?? "NONE"} | reason=${manualOverride.reason}${manualOverride.artifact ? ` | artifact=${manualOverride.artifact}` : ""}\n`
+  : `- ${completedAt}: promoted ${task.id} -> ${nextTaskId ?? "NONE"}\n`;
 fs.appendFileSync(historyPath, historyEntry, "utf8");
 
 clearTaskBlockers(task.id);

@@ -35,6 +35,7 @@ For continuation runs, the stop condition is docs and queue refresh, not immedia
 - required read-only or admin surfaces
 - what absolutely must be test-covered end-to-end
 - which external-resource flows must be test-covered end-to-end before promotion
+- which UI-focused surfaces require screenshot, responsive, and accessibility proof before promotion
 
 ## Technical basis
 
@@ -51,6 +52,7 @@ For continuation runs, the stop condition is docs and queue refresh, not immedia
 - integration-test expectations if any
 - required E2E flows
 - explicit E2E coverage for external-resource features before promotion
+- explicit `@ui-*` Playwright coverage for UI-focused tasks when relevant
 - promotion-blocking test gates
 - what `npm run verify` is expected to prove
 - reliability or security caveats that must be documented
