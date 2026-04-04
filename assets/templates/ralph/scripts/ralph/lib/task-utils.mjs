@@ -87,9 +87,103 @@ export function findTaskDoc(taskId, dirPath = ACTIVE_TASK_DIR) {
   return listTaskDocs(dirPath).find((task) => task.id === normalized) ?? null;
 }
 
+export function isRunnableTaskStatus(status) {
+  return ["active", "queued"].includes(String(status ?? ""));
+}
+
+export function listRunnableTaskDocs(dirPath = ACTIVE_TASK_DIR) {
+  return listTaskDocs(dirPath).filter((task) => isRunnableTaskStatus(task.meta.status));
+}
+
+export function getPreferredRunnableTask(tasks = listRunnableTaskDocs()) {
+  return tasks.find((task) => String(task.meta.status) === "active") ?? tasks[0] ?? null;
+}
+
+export function inspectCurrentTaskState() {
+  const currentTaskId = readCurrentTaskId();
+  const runnableTasks = listRunnableTaskDocs();
+  const resolvedTask = getPreferredRunnableTask(runnableTasks);
+
+  if (!currentTaskId) {
+    return {
+      ok: false,
+      current_task_id: null,
+      resolved_task_id: resolvedTask?.id ?? null,
+      reason: resolvedTask ? "current_task_missing" : "queue_exhausted",
+      repair_applied: false,
+    };
+  }
+
+  if (currentTaskId === "NONE") {
+    return {
+      ok: !resolvedTask,
+      current_task_id: currentTaskId,
+      resolved_task_id: resolvedTask?.id ?? null,
+      reason: resolvedTask ? "current_task_none_with_runnable_tasks" : "queue_exhausted",
+      repair_applied: false,
+    };
+  }
+
+  const activeTask = findTaskDoc(currentTaskId, ACTIVE_TASK_DIR);
+  if (activeTask) {
+    if (String(activeTask.meta.status) === "completed") {
+      return {
+        ok: false,
+        current_task_id: currentTaskId,
+        resolved_task_id: resolvedTask?.id ?? null,
+        reason: "current_task_marked_completed_in_active",
+        repair_applied: false,
+      };
+    }
+
+    if (!isRunnableTaskStatus(activeTask.meta.status)) {
+      return {
+        ok: false,
+        current_task_id: currentTaskId,
+        resolved_task_id: resolvedTask?.id ?? null,
+        reason: `current_task_not_runnable:${String(activeTask.meta.status ?? "unknown")}`,
+        repair_applied: false,
+      };
+    }
+
+    return {
+      ok: true,
+      current_task_id: currentTaskId,
+      resolved_task_id: activeTask.id,
+      reason: "current_task_valid",
+      repair_applied: false,
+    };
+  }
+
+  const completedTask = findTaskDoc(currentTaskId, COMPLETED_TASK_DIR);
+  return {
+    ok: false,
+    current_task_id: currentTaskId,
+    resolved_task_id: resolvedTask?.id ?? null,
+    reason: completedTask ? "current_task_only_in_completed" : "current_task_missing_from_active",
+    repair_applied: false,
+  };
+}
+
+export function syncCurrentTaskState() {
+  const inspection = inspectCurrentTaskState();
+  if (inspection.ok) return inspection;
+
+  const nextTaskId = inspection.resolved_task_id ?? "NONE";
+  if (inspection.current_task_id !== nextTaskId) {
+    writeCurrentTaskId(nextTaskId);
+    return {
+      ...inspection,
+      current_task_id: nextTaskId,
+      repair_applied: true,
+    };
+  }
+
+  return inspection;
+}
+
 export function getFirstQueuedOrActiveTask() {
-  const tasks = listTaskDocs();
-  return tasks.find((task) => ["active", "queued"].includes(task.meta.status)) ?? null;
+  return getPreferredRunnableTask();
 }
 
 export function extractSection(markdown, heading) {

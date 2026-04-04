@@ -1,12 +1,15 @@
 import path from "node:path";
 import {
+  ACTIVE_TASK_DIR,
+  COMPLETED_TASK_DIR,
   GENERATED_DIR,
   STATE_DIR,
   ensureDir,
   fileExists,
-  getFirstQueuedOrActiveTask,
+  listTaskDocs,
   readCurrentTaskId,
-  writeCurrentTaskId,
+  renderBacklogMarkdown,
+  syncCurrentTaskState,
   writeText,
 } from "./lib/task-utils.mjs";
 
@@ -14,15 +17,7 @@ ensureDir(STATE_DIR);
 ensureDir(GENERATED_DIR);
 ensureDir(path.join(STATE_DIR, "artifacts"));
 
-const currentTaskId = readCurrentTaskId();
-if (!currentTaskId) {
-  const firstTask = getFirstQueuedOrActiveTask();
-  if (firstTask) {
-    writeCurrentTaskId(firstTask.id);
-  } else {
-    writeText(path.join(STATE_DIR, "current-task.txt"), "NONE\n");
-  }
-}
+syncCurrentTaskState();
 
 const defaults = [
   ["run-log.md", "# Ralph Loop Run Log\n"],
@@ -40,3 +35,11 @@ for (const [name, content] of defaults) {
     writeText(fullPath, content);
   }
 }
+
+const currentTaskId = readCurrentTaskId();
+const tasks = [
+  ...listTaskDocs(ACTIVE_TASK_DIR),
+  ...listTaskDocs(COMPLETED_TASK_DIR),
+].sort((a, b) => (a.meta.order ?? Number.MAX_SAFE_INTEGER) - (b.meta.order ?? Number.MAX_SAFE_INTEGER));
+
+writeText(path.join(STATE_DIR, "backlog.md"), renderBacklogMarkdown(tasks, currentTaskId));

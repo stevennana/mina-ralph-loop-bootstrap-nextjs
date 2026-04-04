@@ -498,6 +498,8 @@ Do not assume they are present. Prefer checking and recommending them before doc
 - Review each exec-plan page individually and keep looping until its quality is sufficient or missing user intent forces a return to interview.
 - Repeated environment-specific blockers should auto-branch into a dedicated RCA/fix exec-plan after three occurrences, then return to the original task.
 - Generated Ralph loops should detect stalled workers from missing `worker.jsonl` progress, not from guessed Codex internal health, and surface compact `o`/`x`/`!` cycle marks in `state/run-log.md`.
+- Generated Ralph loops must abort the cycle immediately when task-prompt rendering fails; they must never continue into worker, evaluator, commit, or promotion using a stale prompt artifact.
+- Generated Ralph loops must keep `state/current-task.txt` synchronized with runnable tasks in `docs/exec-plans/active/`, and use `NONE` only when the runnable queue is actually exhausted.
 - Repos with persistent runtime state must prove a production-style startup path, not just build/test paths.
 - Generated repos should expose an operator-visible `start:logged` path and server log levels so humans can inspect real server flow without relying only on Ralph artifacts.
 - Each distinct user-visible feature should normally get its own spec and one or more small executable tasks.

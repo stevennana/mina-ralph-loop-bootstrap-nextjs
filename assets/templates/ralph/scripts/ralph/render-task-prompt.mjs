@@ -3,16 +3,18 @@ import {
   GENERATED_DIR,
   extractSection,
   findTaskDoc,
-  readCurrentTaskId,
+  inspectCurrentTaskState,
   safeJsonParse,
   writeText,
   fileExists,
   readText,
 } from "./lib/task-utils.mjs";
 
-const taskId = readCurrentTaskId();
-if (!taskId || taskId === "NONE") {
-  throw new Error("No current task is configured.");
+const taskState = inspectCurrentTaskState();
+const taskId = taskState.current_task_id;
+if (!taskState.ok || !taskId || taskId === "NONE") {
+  const resolved = taskState.resolved_task_id ? ` Suggested current task: ${taskState.resolved_task_id}.` : "";
+  throw new Error(`Current task state is invalid (${taskState.reason}).${resolved}`);
 }
 
 const task = findTaskDoc(taskId);

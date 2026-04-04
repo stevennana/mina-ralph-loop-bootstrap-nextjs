@@ -48,6 +48,7 @@ It also adopts a few practical Ralph-style operating rules:
 - if a feature wave is mostly UI or UX work, require a dedicated `@ui-*` Playwright command plus screenshot, responsive, and accessibility checks before promotion
 - if the same environment-specific blocker repeats three times, branch into an RCA/fix exec-plan instead of stalling the original task forever
 - if the app has persistent runtime state, prove the production-style startup path explicitly instead of assuming `build` is enough
+- generated Ralph loops must fail closed on prompt-render errors and must not keep running on stale `current-task.txt` state
 
 ## Repository Layout
 
@@ -99,6 +100,7 @@ Current v1 limitations:
 - not yet a generic multi-framework bootstrapper
 - does not yet support FastAPI, Go, or arbitrary stacks
 - copied Ralph assets are a starting point, not guaranteed drop-ins
+- copied Ralph assets should still fail closed on invalid current-task state and prompt-render failures
 - generated docs may still need project-specific rewriting after first render
 - the skill repo does not yet include a full self-regression harness
 

@@ -98,3 +98,4 @@ When bootstrapping a new repo, preserve these article-derived properties:
 4. separate evaluator and promotion logic, with deterministic-only promotion available when the task contract proves quality fully by automation
 5. repeatable loop commands
 6. explicit cleanup and debt tracking
+7. fail-closed execution when the current task cannot be resolved or the worker prompt cannot be rendered

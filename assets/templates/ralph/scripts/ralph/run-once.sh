@@ -261,7 +261,15 @@ write_cycle_state "prompt" "running"
 if node scripts/ralph/render-task-prompt.mjs >"$TASK_PROMPT_LOG" 2>&1; then
   append_log "- prompt: rendered -> scripts/ralph/generated/current-task-prompt.txt"
 else
-  append_log "- prompt: failed -> ${TASK_PROMPT_LOG}"
+  PROMPT_FAILURE_SUMMARY="$(last_nonempty_line "$TASK_PROMPT_LOG")"
+  if [[ -z "${PROMPT_FAILURE_SUMMARY}" ]]; then
+    PROMPT_FAILURE_SUMMARY="task prompt rendering failed"
+  fi
+  append_log "- prompt: failed -> ${TASK_PROMPT_LOG} | ${PROMPT_FAILURE_SUMMARY}"
+  write_cycle_state "prompt" "failed"
+  printf '%s\n' "Prompt phase failed for task ${TASK_ID}: ${PROMPT_FAILURE_SUMMARY}" > state/last-result.txt
+  append_health_mark "x"
+  exit 1
 fi
 
 WORKER_LOG="${CYCLE_DIR}/worker.jsonl"

@@ -29,6 +29,7 @@ contracts and adding a separate evaluator step before promotion.
 - `scripts/ralph/run-once.sh`: one full worker/evaluator/promotion cycle
 - `scripts/ralph/run-loop.sh`: repeated unattended cycles
 - `scripts/ralph/ensure-e2e-port-free.sh`: clears port `3100` before E2E-capable verification commands
+- `scripts/ralph/ensure-state.mjs`: repairs obvious task-state drift and refreshes loop-owned state files
 - `scripts/ralph/status.sh`: inspect current task, latest evaluation, and backlog
 - `scripts/ralph/render-task-prompt.mjs`: build the worker prompt from the current task
 
@@ -132,5 +133,10 @@ If no reason is supplied, the override records the default reason `operator manu
 - `manual-promote.sh` is an explicit operator override; use it only for exceptional stalled-but-done cases. If you omit `--reason`, it records `operator manual promotion`.
 - Port cleanup is executed automatically only by the evaluator path for `npm run verify`, `npm run test:e2e`, or other Playwright-bearing commands. Manual local runs do not get that cleanup for free.
 - `ensure-e2e-port-free.sh` is intentionally aggressive and may terminate unrelated processes bound to `127.0.0.1:3100`.
+- `state/current-task.txt` must point at a task that still exists in `docs/exec-plans/active/` with status `active` or `queued`, or be `NONE` only when the runnable queue is exhausted.
+- `docs/exec-plans/completed/` is history only. Plans in that directory are never runnable current tasks.
+- `ensure-state.mjs` repairs obvious drift before status/loop runs by rewriting `state/current-task.txt` to the current runnable task or `NONE`, and it refreshes `state/backlog.md`.
+- if prompt rendering fails, `run-once.sh` stops immediately, records the prompt-phase failure in `state/current-cycle.json` and `state/last-result.txt`, appends `x` to the health line, and does not launch the worker/evaluator/promotion phases.
+- if `current-task.txt` is invalid and there is no runnable task to repair to, treat that as queue exhaustion or operator repair work; do not keep rerunning the loop expecting progress.
 - If the evaluator repeatedly returns `not_done`, tighten the active task doc instead of making the prompt larger.
 - If a task is semantically done but not promotable, fix the contract or the deterministic checks; if you must override, use `manual-promote.sh` so the reason is recorded instead of silently skipping ahead.

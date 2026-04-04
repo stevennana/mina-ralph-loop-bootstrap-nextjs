@@ -22,6 +22,18 @@ class RalphTemplateContractTests(unittest.TestCase):
         self.assertIn("deterministic_only", reference)
         self.assertIn("@axe-core/playwright", reference)
 
+    def test_run_once_and_docs_fail_closed_on_prompt_errors(self) -> None:
+        run_once = (REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "run-once.sh").read_text(
+            encoding="utf-8"
+        )
+        ralph_readme = (
+            REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "README.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn('write_cycle_state "prompt" "failed"', run_once)
+        self.assertIn('append_health_mark "x"', run_once)
+        self.assertIn("does not launch the worker/evaluator/promotion phases", ralph_readme)
+        self.assertIn("repairs obvious drift", ralph_readme)
+
 
 if __name__ == "__main__":
     unittest.main()
