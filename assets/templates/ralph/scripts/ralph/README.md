@@ -128,6 +128,7 @@ If no reason is supplied, the override records the default reason `operator manu
 - if the worker goes silent and `worker.jsonl` stops changing past the stall timeout, the harness marks the cycle as `stalled`, writes a stall artifact, appends `!` to the health line, and stops the unattended loop for operator triage unless that identical stall has already repeated enough times to auto-branch into RCA
 - a single `!` does not automatically mean “create the RCA task now”; the loop records the blocker signature first and only auto-branches into the RCA/fix plan after the same blocker repeats enough times to satisfy the environment-blocker rule
 - when a repeated blocker hits the threshold, the loop auto-generates a blocker-specific RCA task, marks the original task as blocked, switches `state/current-task.txt` to the RCA task, and restores the original task when the RCA task promotes
+- promotion fails closed: if the successor task cannot be restored or validated, `promote-task.mjs` exits non-zero and leaves the current task unchanged instead of advancing `state/current-task.txt`
 - Required commands come from each task doc’s `taskmeta.required_commands`; `evaluate-task.mjs` runs exactly those commands plus required-file checks.
 - If `taskmeta.promotion_mode` is `deterministic_only`, `evaluate-task.mjs` promotes the task based on required command and required-file results alone.
 - `manual-promote.sh` is an explicit operator override; use it only for exceptional stalled-but-done cases. If you omit `--reason`, it records `operator manual promotion`.

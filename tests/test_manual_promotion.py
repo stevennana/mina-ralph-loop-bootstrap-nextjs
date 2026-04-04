@@ -172,6 +172,21 @@ class ManualPromotionTests(unittest.TestCase):
         self.assertTrue((self.repo_root / "docs" / "exec-plans" / "active" / "025-owner-shell-density-reset.md").exists())
         self.assertFalse((self.repo_root / "docs" / "exec-plans" / "completed" / "025-owner-shell-density-reset.md").exists())
 
+    def test_manual_promotion_fails_closed_when_next_task_is_missing(self) -> None:
+        self.write_not_eligible_evaluation()
+        (self.repo_root / "docs" / "exec-plans" / "active" / "026-owner-dashboard-density.md").unlink()
+
+        result = self.run_node("scripts/ralph/promote-task.mjs", "--manual")
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("does not exist in active plans", result.stderr)
+        self.assertTrue((self.repo_root / "docs" / "exec-plans" / "active" / "025-owner-shell-density-reset.md").exists())
+        self.assertFalse((self.repo_root / "docs" / "exec-plans" / "completed" / "025-owner-shell-density-reset.md").exists())
+        self.assertEqual(
+            (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
+            "025-owner-shell-density-reset",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

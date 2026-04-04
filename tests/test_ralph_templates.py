@@ -34,6 +34,20 @@ class RalphTemplateContractTests(unittest.TestCase):
         self.assertIn("does not launch the worker/evaluator/promotion phases", ralph_readme)
         self.assertIn("repairs obvious drift", ralph_readme)
 
+    def test_promotion_contract_mentions_fail_closed_successor_restore(self) -> None:
+        agent_contract = (REPO_ROOT / "AGENT.md").read_text(encoding="utf-8")
+        ralph_readme = (
+            REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "README.md"
+        ).read_text(encoding="utf-8")
+        promote_task = (
+            REPO_ROOT / "assets" / "templates" / "ralph" / "scripts" / "ralph" / "promote-task.mjs"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("RCA return promotion must fail closed", agent_contract)
+        self.assertIn("promotion fails closed", ralph_readme)
+        self.assertIn("Next task", promote_task)
+        self.assertIn("writeCurrentTaskId(nextTaskUpdate.nextCurrentTaskId)", promote_task)
+
 
 if __name__ == "__main__":
     unittest.main()

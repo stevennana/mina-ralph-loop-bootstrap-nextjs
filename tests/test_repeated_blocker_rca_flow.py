@@ -206,6 +206,95 @@ class RepeatedBlockerRcaFlowTests(unittest.TestCase):
         tracker_after_promotion = self.read_json("state/blocker-tracker.json")
         self.assertEqual(tracker_after_promotion["tasks"], {})
 
+    def branch_to_rca_task(self) -> str:
+        self.write_failing_evaluation()
+
+        for _expected_count in (1, 2, 3):
+            self.run_node("scripts/ralph/record-blocker.mjs", "--kind", "evaluation")
+
+        branch = self.run_node("scripts/ralph/branch-rca-task.mjs")
+        return json.loads(branch.stdout)["rca_task_id"]
+
+    def test_rca_promotion_fails_closed_when_parent_task_file_is_missing(self) -> None:
+        rca_task_id = self.branch_to_rca_task()
+        self.parent_task_path.unlink()
+
+        (self.repo_root / "state" / "evaluation.json").write_text(
+            json.dumps(
+                {
+                    "task_id": rca_task_id,
+                    "status": "done",
+                    "promotion_eligible": True,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        result = subprocess.run(
+            ["node", "scripts/ralph/promote-task.mjs"],
+            cwd=self.repo_root,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("does not exist in active plans", result.stderr)
+        self.assertEqual(
+            (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
+            rca_task_id,
+        )
+        self.assertTrue(
+            (self.repo_root / "docs" / "exec-plans" / "active" / f"{rca_task_id}.md").exists()
+        )
+        self.assertFalse(
+            (self.repo_root / "docs" / "exec-plans" / "completed" / f"{rca_task_id}.md").exists()
+        )
+        history = (self.repo_root / "state" / "task-history.md").read_text(encoding="utf-8")
+        self.assertNotIn(f"promoted {rca_task_id} -> {self.parent_task_id}", history)
+
+    def test_rca_promotion_fails_closed_when_parent_taskmeta_is_invalid(self) -> None:
+        rca_task_id = self.branch_to_rca_task()
+        self.parent_task_path.write_text("# broken parent\n", encoding="utf-8")
+
+        (self.repo_root / "state" / "evaluation.json").write_text(
+            json.dumps(
+                {
+                    "task_id": rca_task_id,
+                    "status": "done",
+                    "promotion_eligible": True,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+        result = subprocess.run(
+            ["node", "scripts/ralph/promote-task.mjs"],
+            cwd=self.repo_root,
+            check=False,
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing a taskmeta block", result.stderr)
+        self.assertEqual(
+            (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
+            rca_task_id,
+        )
+        self.assertTrue(
+            (self.repo_root / "docs" / "exec-plans" / "active" / f"{rca_task_id}.md").exists()
+        )
+        self.assertFalse(
+            (self.repo_root / "docs" / "exec-plans" / "completed" / f"{rca_task_id}.md").exists()
+        )
+        history = (self.repo_root / "state" / "task-history.md").read_text(encoding="utf-8")
+        self.assertNotIn(f"promoted {rca_task_id} -> {self.parent_task_id}", history)
+
 
 if __name__ == "__main__":
     unittest.main()

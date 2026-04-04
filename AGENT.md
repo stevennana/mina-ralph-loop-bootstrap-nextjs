@@ -56,6 +56,7 @@ When enhancing this skill, preserve these invariants:
 - Each exec-plan page should be reviewed individually for detail and scope quality.
 - If doc quality is still weak, loop on docs and plans; if the blocker is missing intent, go back to interview.
 - If the same environment-specific blocker repeats three times, create a dedicated RCA/fix exec-plan and then return to the original task.
+- RCA return promotion must fail closed: do not advance `state/current-task.txt` until the parent or successor task has been restored successfully.
 - Generated Ralph loops should monitor `worker.jsonl` progress as the worker heartbeat, stop stalled cycles safely, and surface compact `o`/`x`/`!` health marks in `state/run-log.md`.
 - Generated Ralph loops may offer a manual promotion path for exceptional stalled-but-done cases, but it must require an explicit reason and record that override durably in task history.
 - User-provided references should be analyzed into `docs/references/` and preserved as durable project knowledge.
