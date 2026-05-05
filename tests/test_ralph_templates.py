@@ -45,8 +45,22 @@ class RalphTemplateContractTests(unittest.TestCase):
 
         self.assertIn("RCA return promotion must fail closed", agent_contract)
         self.assertIn("promotion fails closed", ralph_readme)
+        self.assertIn("stable task identifier is", ralph_readme)
+        self.assertIn("state/current-task.txt` stores the stable `taskmeta.id`", ralph_readme)
         self.assertIn("Next task", promote_task)
+        self.assertIn("findTaskDoc(nextTaskId)", promote_task)
+        self.assertIn("nextTask?.filePath", promote_task)
         self.assertIn("writeCurrentTaskId(nextTaskUpdate.nextCurrentTaskId)", promote_task)
+        self.assertIn('normalized === "NONE"', promote_task)
+
+    def test_active_queue_docs_allow_custom_filenames_with_stable_task_ids(self) -> None:
+        active_index = (
+            REPO_ROOT / "assets" / "templates" / "docs" / "exec-plans" / "active" / "index.md"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("Filenames may be ordered or customized", active_index)
+        self.assertIn("taskmeta.id", active_index)
+        self.assertIn("taskmeta.next_task_on_success", active_index)
 
 
 if __name__ == "__main__":

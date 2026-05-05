@@ -19,6 +19,15 @@ import {
 
 const DEFAULT_MANUAL_PROMOTION_REASON = "operator manual promotion";
 
+function normalizeNextTaskTarget(raw) {
+  if (raw === null || raw === undefined) return null;
+  const normalized = normalizeTaskId(raw);
+  if (!normalized || normalized === "NONE") {
+    return null;
+  }
+  return normalized;
+}
+
 function parseTaskMeta(markdown, label) {
   const match = markdown.match(/```json taskmeta\s*([\s\S]*?)```/);
   if (!match) {
@@ -40,13 +49,18 @@ function buildNextTaskUpdate({ nextTaskId, parentTaskId, currentTaskId, complete
     };
   }
 
-  const nextTaskPath = path.join(ACTIVE_TASK_DIR, `${nextTaskId}.md`);
-  if (!fileExists(nextTaskPath)) {
+  const nextTask = findTaskDoc(nextTaskId);
+  const fallbackNextTaskPath = path.join(ACTIVE_TASK_DIR, `${nextTaskId}.md`);
+  if (!nextTask && !fileExists(fallbackNextTaskPath)) {
     throw new Error(`Next task '${nextTaskId}' does not exist in active plans.`);
   }
 
-  const nextMarkdown = readText(nextTaskPath);
+  const nextTaskPath = nextTask?.filePath ?? fallbackNextTaskPath;
+  const nextMarkdown = nextTask?.markdown ?? readText(nextTaskPath);
   const nextMeta = parseTaskMeta(nextMarkdown, `Next task '${nextTaskId}'`);
+  if (normalizeTaskId(nextMeta.id) !== nextTaskId) {
+    throw new Error(`Next task '${nextTaskId}' resolved to a taskmeta.id mismatch.`);
+  }
   if (nextMeta.status === "completed") {
     throw new Error(`Next task '${nextTaskId}' is already marked completed and cannot become current.`);
   }
@@ -127,7 +141,7 @@ if (!task) {
 }
 
 const completedAt = timestamp();
-const nextTaskId = task.meta.next_task_on_success ?? null;
+const nextTaskId = normalizeNextTaskTarget(task.meta.next_task_on_success);
 const parentTaskId = task.meta.rca_for_task_id ?? null;
 const overrideArtifact = options.artifact.trim();
 const manualOverride = options.manual
@@ -172,9 +186,10 @@ fs.unlinkSync(task.filePath);
 writeCurrentTaskId(nextTaskUpdate.nextCurrentTaskId);
 
 const historyPath = path.join(process.cwd(), "state", "task-history.md");
+const nextTaskLabel = nextTaskId ?? "NONE";
 const historyEntry = manualOverride
-  ? `- ${completedAt}: manually promoted ${task.id} -> ${nextTaskId ?? "NONE"} | reason=${manualOverride.reason}${manualOverride.artifact ? ` | artifact=${manualOverride.artifact}` : ""}\n`
-  : `- ${completedAt}: promoted ${task.id} -> ${nextTaskId ?? "NONE"}\n`;
+  ? `- ${completedAt}: manually promoted ${task.id} -> ${nextTaskLabel} | reason=${manualOverride.reason}${manualOverride.artifact ? ` | artifact=${manualOverride.artifact}` : ""}\n`
+  : `- ${completedAt}: promoted ${task.id} -> ${nextTaskLabel}\n`;
 fs.appendFileSync(historyPath, historyEntry, "utf8");
 
 clearTaskBlockers(task.id);
@@ -199,6 +214,6 @@ if (manualOverride) {
 
 console.log(
   manualOverride
-    ? `Manually promoted ${task.id} -> ${nextTaskId ?? "NONE"}`
-    : `Promoted ${task.id} -> ${nextTaskId ?? "NONE"}`
+    ? `Manually promoted ${task.id} -> ${nextTaskLabel}`
+    : `Promoted ${task.id} -> ${nextTaskLabel}`
 );

@@ -4,6 +4,7 @@ This queue is the task-level promotion source of truth for {{PROJECT_NAME}}.
 
 Only task files in this directory that contain a `taskmeta` JSON block are eligible for automatic selection, evaluation, and promotion.
 Queue depth may legitimately exceed five tasks when the planner was asked for smaller slices or a longer backlog.
+Filenames may be ordered or customized for readability; `taskmeta.id` is the stable id used by `state/current-task.txt` and `taskmeta.next_task_on_success`.
 
 ## Current recommended sequence
 {{TASK_SEQUENCE_NUMBERED}}

@@ -16,10 +16,11 @@ BLOCKER_UTILS_TEMPLATE = REPO_ROOT / "assets" / "templates" / "ralph" / "scripts
 
 
 def write_task(path: Path, *, task_id: str, title: str, status: str, next_task_on_success: str | None) -> None:
+    order_prefix = task_id.split("-", 1)[0]
     taskmeta = {
         "id": task_id,
         "title": title,
-        "order": int(task_id.split("-", 1)[0]),
+        "order": int(order_prefix) if order_prefix.isdigit() else 0,
         "status": status,
         "next_task_on_success": next_task_on_success,
         "prompt_docs": ["AGENTS.md"],
@@ -103,6 +104,21 @@ class ManualPromotionTests(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def write_eligible_evaluation(self, task_id: str = "025-owner-shell-density-reset") -> None:
+        (self.repo_root / "state" / "evaluation.json").write_text(
+            json.dumps(
+                {
+                    "task_id": task_id,
+                    "status": "done",
+                    "promotion_eligible": True,
+                    "summary": "ready",
+                    "missing_requirements": [],
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+
     def test_manual_promotion_overrides_not_eligible_evaluation(self) -> None:
         artifact = "state/artifacts/20260321T112504-025-owner-shell-density-reset"
         self.write_not_eligible_evaluation()
@@ -136,6 +152,46 @@ class ManualPromotionTests(unittest.TestCase):
 
         history = (self.repo_root / "state" / "task-history.md").read_text(encoding="utf-8")
         self.assertIn("manually promoted 025-owner-shell-density-reset -> 026-owner-dashboard-density", history)
+
+    def test_promotion_finds_next_task_by_taskmeta_id_when_filename_is_ordered(self) -> None:
+        (self.repo_root / "state" / "current-task.txt").write_text(
+            "endpoint-domain-and-schema\n",
+            encoding="utf-8",
+        )
+        write_task(
+            self.repo_root / "docs" / "exec-plans" / "active" / "001-endpoint-domain-and-schema.md",
+            task_id="endpoint-domain-and-schema",
+            title="Endpoint domain and schema",
+            status="active",
+            next_task_on_success="endpoint-validation-and-matching",
+        )
+        write_task(
+            self.repo_root / "docs" / "exec-plans" / "active" / "002-endpoint-validation-and-matching.md",
+            task_id="endpoint-validation-and-matching",
+            title="Endpoint validation and matching",
+            status="queued",
+            next_task_on_success=None,
+        )
+        self.write_eligible_evaluation(task_id="endpoint-domain-and-schema")
+
+        result = self.run_node("scripts/ralph/promote-task.mjs")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Promoted endpoint-domain-and-schema -> endpoint-validation-and-matching", result.stdout)
+        self.assertFalse(
+            (self.repo_root / "docs" / "exec-plans" / "active" / "001-endpoint-domain-and-schema.md").exists()
+        )
+        self.assertTrue(
+            (self.repo_root / "docs" / "exec-plans" / "completed" / "001-endpoint-domain-and-schema.md").exists()
+        )
+        next_markdown = (
+            self.repo_root / "docs" / "exec-plans" / "active" / "002-endpoint-validation-and-matching.md"
+        ).read_text(encoding="utf-8")
+        self.assertIn('"status": "active"', next_markdown)
+        self.assertEqual(
+            (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
+            "endpoint-validation-and-matching",
+        )
 
     def test_manual_promotion_without_args_uses_default_reason(self) -> None:
         self.write_not_eligible_evaluation()
@@ -186,6 +242,52 @@ class ManualPromotionTests(unittest.TestCase):
             (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
             "025-owner-shell-density-reset",
         )
+
+    def test_manual_promotion_treats_string_none_as_terminal_successor(self) -> None:
+        self.write_not_eligible_evaluation()
+        write_task(
+            self.repo_root / "docs" / "exec-plans" / "active" / "025-owner-shell-density-reset.md",
+            task_id="025-owner-shell-density-reset",
+            title="Owner shell density reset",
+            status="active",
+            next_task_on_success="NONE",
+        )
+
+        result = self.run_node("scripts/ralph/promote-task.mjs", "--manual")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Manually promoted 025-owner-shell-density-reset -> NONE", result.stdout)
+        self.assertFalse((self.repo_root / "docs" / "exec-plans" / "active" / "025-owner-shell-density-reset.md").exists())
+        self.assertTrue((self.repo_root / "docs" / "exec-plans" / "completed" / "025-owner-shell-density-reset.md").exists())
+        self.assertEqual(
+            (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
+            "NONE",
+        )
+        history = (self.repo_root / "state" / "task-history.md").read_text(encoding="utf-8")
+        self.assertIn("manually promoted 025-owner-shell-density-reset -> NONE", history)
+
+    def test_regular_promotion_treats_string_none_as_terminal_successor(self) -> None:
+        self.write_eligible_evaluation()
+        write_task(
+            self.repo_root / "docs" / "exec-plans" / "active" / "025-owner-shell-density-reset.md",
+            task_id="025-owner-shell-density-reset",
+            title="Owner shell density reset",
+            status="active",
+            next_task_on_success="NONE",
+        )
+
+        result = self.run_node("scripts/ralph/promote-task.mjs")
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Promoted 025-owner-shell-density-reset -> NONE", result.stdout)
+        self.assertFalse((self.repo_root / "docs" / "exec-plans" / "active" / "025-owner-shell-density-reset.md").exists())
+        self.assertTrue((self.repo_root / "docs" / "exec-plans" / "completed" / "025-owner-shell-density-reset.md").exists())
+        self.assertEqual(
+            (self.repo_root / "state" / "current-task.txt").read_text(encoding="utf-8").strip(),
+            "NONE",
+        )
+        history = (self.repo_root / "state" / "task-history.md").read_text(encoding="utf-8")
+        self.assertIn("promoted 025-owner-shell-density-reset -> NONE", history)
 
 
 if __name__ == "__main__":
